@@ -107,10 +107,17 @@ local function ipState(data, prefix)
         publish("IP_STATUS_SUCCESS")
     elseif status == "PDP DEACT" then
         if ipStatus == "IP PROCESSING" or ipStatus == "IP STATUS" or ipStatus == "IP GPRSACT" then
-            -- IP服务激活过程中发生的‘PDP DEACT' 处理
-            else
             publish("CONNECTION_LINK_ERROR")
+        else
+            -- IP服务激活过程中发生的‘PDP DEACT' 处理
+            request("AT+CIPSHUT")
+            request("AT+CIPSTATUS")
         end
+    elseif status == "IP INITIAL" or status == "IP CONFIG" or status == "IP START" then
+        request("AT+CSTT=\"" .. apnname .. '\",\"' .. username .. '\",\"' .. password .. "\"")
+        request("AT+CIICR")
+    else -- 异常状态
+
     end
     ipStatus = status
     print("link.ipState IP STATUS is :\t", ipStatus)
