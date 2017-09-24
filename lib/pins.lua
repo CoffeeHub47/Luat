@@ -13,7 +13,8 @@ local print = base.print
 -- @number val，输出模式默认电平：0 是低电平1是高电平，中断模式填nil或0 or 1
 -- @string fnc, 中断按键回调函数，用来捆绑按键
 -- @return function ,返回一个函数，该函数接受一个参数用来设置IO的电平
--- @usage key = pins.setup(pio.P1_1,0,"IT") ，配置Key的IO为pio.32,中断模式，下降沿触发。用key()获取当前电平
+-- @return nil,中断模式捆绑回调函数返回空
+-- @usage pins.setup(pio.P1_1,0,key_int) ，配置Key的IO为pio.32,中断模式,自动触发key_int(msg)函数
 -- @usage led = pins.setup(pio.P1_1,0) ,配置LED脚的IO为pio.32，输出模式，默认输出低电平。led(1)即可输出高电平
 -- @usage key = pins.setup(pio.P1_1),配置key的IO为pio.32，输入模式,用key()即可获得当前电平
 function setup(pin, val, fnc)
@@ -24,6 +25,7 @@ function setup(pin, val, fnc)
         pio.pin.setdir(pio.INT, pin)
         --注册引脚中断的处理函数
         rtos.on(rtos.MSG_INT, fnc)
+        return
     end
     -- 输出模式初始化默认配置
     if val ~= nil then
