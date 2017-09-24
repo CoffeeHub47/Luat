@@ -108,7 +108,7 @@ local function creg(data)
         end
         state = s
         --产生一个内部消息NET_STATE_CHANGED，表示GSM网络注册状态发生变化
-        publish("NET_STATE_CHANGED", s)
+        publish("NET_STATE_REGISTERED")
     end
     --已注册并且lac或ci发生了变化
     if state == "REGISTERED" then
@@ -438,9 +438,9 @@ sys.subscribe("SIM_IND", function(para)
     --sim卡工作不正常
     if para ~= "RDY" then
         --更新GSM网络状态
-        state = "UNREGISTER"
+        -- state = "UNREGISTER"
         --产生内部消息NET_STATE_CHANGED，表示网络状态发生变化
-        publish("NET_STATE_CHANGED", state)
+        publish("NET_STATE_UNREGISTER")
     end
 end)
 
