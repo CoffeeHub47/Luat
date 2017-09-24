@@ -90,8 +90,6 @@ local function cgattRsp(cmd, success, response, intermediate)
                 -- 激活IP服务
                 request("AT+CSTT=\"" .. apnname .. '\",\"' .. username .. '\",\"' .. password .. "\"")
                 request("AT+CIICR")
-                --获取IP地址，地址获取成功后，IP网络状态会切换为"IP STATUS"
-                request("AT+CIFSR")
             end
             --查询激活状态
             request("AT+CIPSTATUS")
@@ -103,55 +101,7 @@ local function cgattRsp(cmd, success, response, intermediate)
         print("link.cgattRsp is NET_GPRS_NOTREADY:\t", intermediate)
     end
 end
---[[
-函数名：sendcnf
-功能  ：socket数据发送结果确认
-参数  ：
-id：socket id
-result：发送结果字符串
-返回值：无
-]]
--- local function sendcnf(id, result)
---     local str = string.match(result, "([%u ])")
---     --发送失败
---     if str == "TCP ERROR" or str == "UDP ERROR" or str == "ERROR" then
---         linkList[id].state = result
---     end
---     --调用用户注册的状态处理函数
---     linkList[id].notify(id, "SEND", result)
--- end
---[[
-函数名：closecnf
-功能  ：socket关闭结果确认
-参数  ：
-id：socket id
-result：关闭结果字符串
-返回值：无
-]]
--- function closecnf(id, result)
---     --socket id无效
---     if not id or not linkList[id] then
---         print("link.closecnf:error", id)
---         return
---     end
---     --不管任何的close结果,链接总是成功断开了,所以直接按照链接断开处理
---     if linkList[id].state == "DISCONNECTING" then
---         linkList[id].state = "CLOSED"
---         linkList[id].notify(id, "DISCONNECT", "OK")
---         usersckntfy(id, false)
---         stopconnectingtimer(id)
---     --连接注销,清除维护的连接信息,清除urc关注
---     elseif linkList[id].state == "CLOSING" then
---         local tlink = linkList[id]
---         usersckntfy(id, false)
---         linkList[id] = nil
---         ril.deregurc(tostring(id), urc)
---         tlink.notify(id, "CLOSE", "OK")
---         stopconnectingtimer(id)
---     else
---         print("link.closecnf:error", linkList[id].state)
---     end
--- end
+
 --[[
 函数名：ipState
 功能  ：IP网络状态处理函数
@@ -161,18 +111,27 @@ prefix: +CIPSTATUS 的返回主动上报urc 前缀STATE
 返回值：无
 ]]
 local function ipState(data, prefix)
-    
-    ipStatus = string.sub(data, 8, -1)
-    
-    if ipStatus == "IP GPRSACT" or ipStatus == "IP PROCESSING" or ipStatus == "IP STATUS" then
+    status = string.sub(data, 8, -1)
+    if status == "IP GPRSACT" then
+        --获取IP地址，地址获取成功后，IP网络状态会切换为"IP STATUS"
+        request("AT+CIFSR")
+        -- 查询连接状态，是否正确获取IP地址
+        request("AT+CIPSTATUS")
+        -- 发布 PDP成功消息
+        publish("IP_PDP_READY")
+    elseif status == "IP PROCESSING" or status == "IP STATUS" then
+        -- 发布IP服务激活成功消息
         publish("IP_STATUS_SUCCESS")
-    elseif ipStatus == "PDP DEACT" then
-        publish("CONNECTION_LINK_ERROR")
+    elseif status == "PDP DEACT" then
+        if ipStatus == "IP PROCESSING" or ipStatus == "IP STATUS" or ipStatus == "IP GPRSACT" then
+            -- IP服务激活过程中发生的‘PDP DEACT' 处理
+            else
+            publish("CONNECTION_LINK_ERROR")
+        end
     end
+    ipStatus = status
     print("link.ipState IP STATUS is :\t", ipStatus)
-
 end
-
 
 --sim卡的默认apn表
 local apntable = {
@@ -278,15 +237,14 @@ local function rsp(cmd, success, response, intermediate)
     --连接到服务器的应答
     elseif prefix == "+CIPSTART" then
         if response == "ERROR" then
-            statusind(id, "ERROR")
+            publish("CONNECT_CREATE_FAILED")
         end
     --激活IP网络的应答
     elseif prefix == "+CIICR" then
         if success then
             ipStatus = "IP CONFIG"
-            print("link.rsp ipStatus is ---->\t", ipStatus)
         else
-            shut()
+            publish("CONNECTION_LINK_ERROR")
         end
     end
 end
@@ -335,8 +293,7 @@ ril.regrsp("+CIPSTART", rsp)-- 订阅“建立TCP/UDP连接”返回消息
 ril.regrsp("+CIPSEND", rsp)-- 订阅“发送数据”返回消息
 ril.regrsp("+CIPCLOSE", rsp)-- 订阅“关闭TCP/UDP连接”返回消息
 ril.regrsp("+CIPSHUT", rsp)-- 订阅“关闭移动场景”返回消息
-ril.regrsp("+CIICR", rsp)-- 订阅“激活移动场景”返回消息
-
+-- ril.regrsp("+CIICR", rsp)-- 订阅“激活移动场景”返回消息
 -- 订阅app消息
 sys.subscribe(getApn, "IMSI_READY")
 sys.subscribe(proc, "FLYMODE_IND", "UPDATE_BEGIN_IND", "UPDATE_END_IND", "DBG_BEGIN_IND", "DBG_END_IND", "NTP_BEGIN_IND", "NTP_END_IND")
@@ -366,6 +323,75 @@ function SetQuickSend(mode)
     qsend = mode
 end
 
+--[[
+函数名：validaction
+功能  ：检查某个socket id的动作是否有效
+参数  ：
+id：socket id
+action：动作
+返回值：true有效，false无效
+]]
+local function validaction(id, action)
+    --socket无效
+    if linkList[id] == nil then
+        print("link.validaction:id nil", id)
+        return false
+    end
+    
+    --同一个状态不重复执行
+    if action .. "ING" == linkList[id].state then
+        print("link.validaction:", action, linkList[id].state)
+        return false
+    end
+    
+    local ing = string.match(linkList[id].state, "(ING)", -3)
+    
+    if ing then
+        --有其他任务在处理时,不允许处理连接,断链或者关闭是可以的
+        if action == "CONNECT" then
+            print("link.validaction: action running", linkList[id].state, action)
+            return false
+        end
+    end
+    
+    -- 无其他任务在执行,允许执行
+    return true
+end
+
+--- socket连接服务器请求
+-- @number id,socket id
+-- @string protocol,传输层协议TCP或者UDP
+-- @string address,服务器地址
+-- @number port,服务器端口
+-- @return bool,请求成功同步返回true，否则false；
+function connect(id, protocol, address, port)
+    --不允许发起连接动作
+    if validaction(id, "CONNECT") == false or linkList[id].state == "CONNECTED" then
+        return false
+    end
+    print("link.connect: ", id, protocol, address, port, ipstatus, shuting, shutpending)
+    
+    linkList[id].state = "CONNECTING"
+    
+    if cc and cc.anycallexist() then
+        --如果打开了通话功能 并且当前正在通话中使用异步通知连接失败
+        print("link.connect:failed cause call exist")
+        publish("LINK_ASYNC_LOCAL_EVENT", statusind, id, "CONNECT FAIL")
+        return false
+    end
+    
+    local connstr = string.format("AT+CIPSTART=%d,\"%s\",\"%s\",%s", id, protocol, address, port)
+    
+    if (ipstatus ~= "IP STATUS" and ipstatus ~= "IP PROCESSING") or shuting or shutpending then
+        --ip环境未准备好先加入等待
+        linkList[id].pending = connstr
+    else
+        --发送AT命令连接服务器
+        request(connstr)
+    end
+    return true
+end
+
 --- GPRS网络IP服务连接处理任务
 function connectionTask()
     while true do
@@ -374,13 +400,11 @@ function connectionTask()
         -- 初始化PDP注册之前的一些参数
         initial()
         -- 每隔2000ms查询1次GPRS附着状态，直到附着成功。
-        while not waitUntil("NET_GPRS_READY", 2000, function()
-            if not flyMode then request("AT+CGATT?", nil, cgattRsp) end
-        end) do end
+        while not waitUntil("NET_GPRS_READY", 2000, function()request("AT+CGATT?", nil, cgattRsp) end) do end
+        -- 每隔2000ms查询1次 PDP_READY 消息
+        while not waitUntil("IP_PDP_READY", 2000, function()request("AT+CIPSTATUS") end) do end
         -- 激活IP服务，等待IP获取成功消息,每隔2秒查询1次
-        waitUntil("IP_STATUS_SUCCESS", 2000, function()
-            request("AT+CIPSTATUS")
-        end)
+        while not waitUntil("IP_STATUS_SUCCESS", 2000, function()request("AT+CIPSTATUS") end) do end
         -- while not waitUntil("LINK_STATE_INVALID", 120000) do end
         while not waitUntil("CONNECTION_LINK_ERROR", 12000) do end
     end
