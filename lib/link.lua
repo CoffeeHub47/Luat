@@ -68,19 +68,15 @@ local function cgattRsp(cmd, success, response, intermediate)
     if intermediate == "+CGATT: 1" then
         -- 发布GPRS附着消息
         publish("NET_GPRS_READY")
-        -- 如果存在链接,那么在gprs附着上以后自动激活IP网络
-        if ipStatus == "IP INITIAL" then
-            -- 激活IP服务
-            request("AT+CSTT=\"" .. apnname .. '\",\"' .. username .. '\",\"' .. password .. "\"")
-            request("AT+CIICR")
-        end
         --查询激活状态
         request("AT+CIPSTATUS")
         print("link.cgattRsp is NET_GPRS_READY:\t", intermediate)
     
     --发布GPRS分离消息
     elseif intermediate == "+CGATT: 0" then
-        publish("CONNECTION_LINK_ERROR")
+        if ipStatus == "IP PROCESSING" or ipStatus == "IP STATUS" or ipStatus == "IP GPRSACT" then
+            publish("CONNECTION_LINK_ERROR")
+        end
         print("link.cgattRsp is NET_GPRS_NOTREADY:\t", intermediate)
     end
 end
@@ -117,8 +113,8 @@ local function ipState(data, prefix)
         request("AT+CSTT=\"" .. apnname .. '\",\"' .. username .. '\",\"' .. password .. "\"")
         request("AT+CIICR")
     else -- 异常状态
-
-    end
+        
+        end
     ipStatus = status
     print("link.ipState IP STATUS is :\t", ipStatus)
 end
@@ -167,49 +163,25 @@ local function flySwitch(id, para)
         request("AT+CGATT?", nil, cgattRsp)
     end
 end
+
 --]]
 --[[
-函数名：rsp
-功能  ：本功能模块内“通过虚拟串口发送到底层core软件的AT命令”的应答处理
-参数  ：
-cmd：此应答对应的AT命令
-success：AT命令执行结果，true或者false
-response：AT命令的应答中的执行结果字符串
-intermediate：AT命令的应答中的中间信息
-返回值：无
-]]
----[[
-local function cipShut(cmd, success, response, intermediate)
-    local prefix = string.match(cmd, "AT(%+%u+)")
-    local id = tonumber(string.match(cmd, "AT%+%u+=(%d)"))
-    --关闭IP网络的应答
-    if prefix == "+CIPSHUT" then
-        -- shutcnf(response)
-    end
-end
---]]
---[[
-函数名：urc
-功能  ：本功能模块内“注册的底层core通过虚拟串口主动上报的通知”的处理
+函数名：pdp
+功能  ：本功能模块处理IP服务激活后的pdp上报。
 参数  ：
 data：通知的完整字符串信息
 prefix：通知的前缀
 返回值：无
 ]]
 ---[[
-function urc(data, prefix)
-    
-    if prefix == "+PDP" then
-        
-        end
+function pdp(data, prefix)
+    request("AT+CIPSTATUS")
 end
 --]]
 --注册以下urc通知的处理函数
 ril.regurc("STATE", ipState)
-ril.regurc("+PDP", urc)
--- 订阅AT命令返回消息
-ril.regrsp("+CIPSHUT", cipShut)-- 订阅“关闭移动场景”返回消息
--- ril.regrsp("+CIICR", rsp)-- 订阅“激活移动场景”返回消息
+ril.regurc("+PDP", pdp)
+
 -- 订阅app消息
 sys.subscribe(autoApn, "IMSI_READY")
 sys.subscribe(flySwitch, "FLYMODE_IND")
@@ -239,20 +211,29 @@ function SetQuickSend(mode)
     qsend = mode
 end
 
---- GPRS网络IP服务连接处理任务
-function connectionTask()
+-- GPRS网络IP服务连接处理任务
+local function connectionTask(fnc)
     while true do
         -- 等待GSM注册成功
         while not waitUntil("NET_STATE_REGISTERED", 120000) do end
         -- 初始化PDP注册之前的一些参数
         initial()
         -- 每隔2000ms查询1次GPRS附着状态，直到附着成功。
-        while not waitUntil("NET_GPRS_READY", 2000, function()request("AT+CGATT?", nil, cgattRsp) end) do end
+        while not waitUntil("NET_GPRS_READY", 2000) do request("AT+CGATT?", nil, cgattRsp) end
         -- 每隔2000ms查询1次 PDP_READY 消息
-        while not waitUntil("IP_PDP_READY", 2000, function()request("AT+CIPSTATUS") end) do end
+        while not waitUntil("IP_PDP_READY", 2000) do request("AT+CIPSTATUS") end
         -- 激活IP服务，等待IP获取成功消息,每隔2秒查询1次
-        while not waitUntil("IP_STATUS_SUCCESS", 2000, function()request("AT+CIPSTATUS") end) do end
+        while not waitUntil("IP_STATUS_SUCCESS", 2000) do request("AT+CIPSTATUS") end
         -- while not waitUntil("LINK_STATE_INVALID", 120000) do end
-        while not waitUntil("CONNECTION_LINK_ERROR", 12000, function()request("AT+CIPSTATUS") end) do end
+        while not waitUntil("CONNECTION_LINK_ERROR", 12000) do
+            if type(fnc) == "function" then fnc() end
+            request("AT+CIPSHUT")
+            request("AT+CIPSTATUS")
+        end
     end
+end
+
+--- GPRS 模块配置用户自定义脚本部分
+function setupUserConfig(fnc)
+    sys.taskInit(connectionTask, fnc)
 end

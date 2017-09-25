@@ -133,7 +133,7 @@ end
 function taskn(v1, v2)
     local count = 1
     print("taskn waitUntil is start ! ------------------------------")
-    sys.waitUntil("TEST_WAIT_UNTIL", 6000000, function()print("taskn waitUntil is running! #########################") end)
+    sys.waitUntil("TEST_WAIT_UNTIL", 6000000)
     while true do
         print("taskn delay", count)
         sys.wait(1000)

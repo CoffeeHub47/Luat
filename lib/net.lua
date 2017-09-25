@@ -4,7 +4,6 @@
 -- @license MIT
 -- @copyright openLuat
 -- @release 2017.02.17
-
 local base = _G
 local string = require "string"
 local sys = require "sys"
@@ -102,13 +101,14 @@ local function creg(data)
     if s ~= state then
         --临近小区查询处理
         if s == "REGISTERED" then
+            --产生一个内部消息NET_STATE_CHANGED，表示GSM网络注册状态发生变化
+            publish("NET_STATE_REGISTERED")
             cengQueryPoll(60 * 1000)
         else
             cengQueryPoll()
         end
         state = s
-        --产生一个内部消息NET_STATE_CHANGED，表示GSM网络注册状态发生变化
-        publish("NET_STATE_REGISTERED")
+    
     end
     --已注册并且lac或ci发生了变化
     if state == "REGISTERED" then
@@ -446,18 +446,18 @@ end)
 
 -- 处理飞行模式切换
 sys.subscribe("FLYMODE_IND", function(para)
-    --飞行模式状态发生变化
-    if flyMode ~= para then
-        flyMode = para
-    end
-    --退出飞行模式
-    if not para then
-        --处理查询定时器
-        csqQueryPoll()
-        cengQueryPoll()
-        --复位GSM网络状态
-        neturc("2", "+CREG")
-    end
+        --飞行模式状态发生变化
+        if flyMode ~= para then
+            flyMode = para
+        end
+        --退出飞行模式
+        if not para then
+            --处理查询定时器
+            csqQueryPoll()
+            cengQueryPoll()
+            --复位GSM网络状态
+            neturc("2", "+CREG")
+        end
 end)
 
 -- 处理工作模式切换
