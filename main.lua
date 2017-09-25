@@ -10,7 +10,6 @@ require "net"
 net.startQueryAll(8 * 1000, 600 * 1000)
 -- 加载GPRS服务
 require "link"
-link.setupUserConfig()
 -- 控制台
 require "console"
 console.setup(1, 115200)
