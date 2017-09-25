@@ -5,8 +5,6 @@
 -- @copyright openLuat.com
 -- @release 2017.9.20
 module(..., package.seeall)
-local wait = sys.wait
-local waitUntil = sys.waitUntil
 local publish = sys.publish
 local request = ril.request
 
@@ -63,17 +61,11 @@ local function ipState(data, prefix)
     elseif status == "IP PROCESSING" or status == "IP STATUS" then
         sys.timer_stop(request, 2000, "AT+CIPSTATUS")
         publish("IP_STATUS_SUCCESS")
-    elseif status == "IP INITIAL" then
+    elseif status == "IP INITIAL" or status == "PDP DEACT" then
         request("AT+CSTT=\"" .. apnname .. '\",\"' .. username .. '\",\"' .. password .. "\"")
         request("AT+CIICR")
     elseif status == "IP CONFIG" or status == "IP START" then
         sys.timer_start(request, 2000, "AT+CIPSTATUS")
-    else -- 异常状态 PDP DEACT/others
-        if ipStatus == "IP PROCESSING" or ipStatus == "IP STATUS" or ipStatus == "IP GPRSACT" then
-            publish("CONNECTION_LINK_ERROR")
-        end
-        request("AT+CIPSHUT")
-        request("AT+CIPSTATUS")
     end
     ipStatus = status
     print("link.ipState IP STATUS is :\t", ipStatus)
