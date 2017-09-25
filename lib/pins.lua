@@ -5,9 +5,8 @@
 -- @copyright openLuat
 -- @release 2017.09.23 11:34
 module(..., package.seeall)
-local base = _G
-local assert = base.assert
-local print = base.print
+local interruptCallbacks = {}
+
 --- 自适应GPIO模式
 -- @param pin ，参数为pio.P0_1-31 和 pio_P1_1-31 (IO >= 32 and IO - 31)
 -- @number val，输出模式默认电平：0 是低电平1是高电平，中断模式填nil或0 or 1
@@ -24,7 +23,7 @@ function setup(pin, val, fnc)
     if type(fnc) == "function" then
         pio.pin.setdir(pio.INT, pin)
         --注册引脚中断的处理函数
-        rtos.on(rtos.MSG_INT, fnc)
+        interruptCallbacks[pin] = fnc
         return
     end
     -- 输出模式初始化默认配置
@@ -50,3 +49,10 @@ function setup(pin, val, fnc)
         end
     end
 end
+
+rtos.on(rtos.MSG_INT, function(msg)
+    if interruptCallbacks[msg.int_resnum] == nil then
+        print('warning:rtos.MSG_INT callback nil', msg.int_resnum)
+    end
+    interruptCallbacks[msg.int_resum](msg.int_id)
+end)
