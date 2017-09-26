@@ -226,7 +226,7 @@ data：收到的数据
 返回值：无
 ]]
 local function procatc(data)
-    print("net.proatc: ---->\t", data)
+    print("ril.proatc: ---->\t", data)
     --如果命令的应答是多行字符串格式
     if interdata and cmdtype == MLINE then
         --不出现OK\r\n，则认为应答还未结束

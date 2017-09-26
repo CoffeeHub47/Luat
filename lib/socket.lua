@@ -17,16 +17,14 @@ local valid = {0, 1, 2, 3, 4, 5, 6, 7}
 local ipStatus = false
 -- 单次发送数据最大值
 local SENDSIZE = 1460
--- socket连接表
-local linkList = {}
--- socket发起连接请求后，响应间隔超时策略："restart" or "reconn"
-local reconnStrategy = "reconn"
--- socket发起连接请求后，响应间隔ms
-local reconnInterval
-
+-- read函数缓冲区
+local readBuffer = {}
+-- read函数过滤器
+local readFilter
 
 --[[
 订阅ID通道的链接请求结果
+该函数在connect中订阅的链接消息
 --]]
 local function urc()
     -- socket 状态通知
@@ -94,7 +92,7 @@ function send(id, data)
     local len = string.len(data)
     if len == 0 then print("socket.send : Send data empyt!") return end
     
-    for i = 0, len, SENDSIZE do
+    for i = 1, len, SENDSIZE do
         -- 按最大MTU单元对data分包
         local setpData = string.sub(data, i, i + SENDSIZE - 1)
         --发送AT命令执行数据发送
@@ -107,45 +105,29 @@ end
 -- @param
 -- @return
 -- @usage
-function read(id)
-
-end
-
---[[
-函数名：rcvdfilter
-功能  ：从AT通道收取一包数据
-参数  ：
-data：解析到的数据
-返回值：两个返回值，第一个返回值表示未处理的数据，第二个返回值表示AT通道的数据过滤器函数
-]]
-local function rcvdfilter(data)
-    --如果总长度为0，则本函数不处理收到的数据，直接返回
-    if rcvd.len == 0 then
-        return data
-    end
-    --剩余未收到的数据长度
-    local restlen = rcvd.len - string.len(rcvd.data)
-    if string.len(data) > restlen then -- at通道的内容比剩余未收到的数据多
-        -- 截取网络发来的数据
-        rcvd.data = rcvd.data .. string.sub(data, 1, restlen)
-        -- 剩下的数据仍按at进行后续处理
-        data = string.sub(data, restlen + 1, -1)
-    else
-        rcvd.data = rcvd.data .. data
-        data = ""
-    end
-    
-    if rcvd.len == string.len(rcvd.data) then
-        --通知接收数据
-        recv(rcvd.id, rcvd.len, rcvd.data)
-        rcvd.id = 0
-        rcvd.len = 0
-        rcvd.data = ""
-        return data
-    else
-        return data, rcvdfilter
+function read(protocol)
+    if protocol == "UDP" then
+        -- 将 readBuffer 当作FIFO 缓冲区，先进先出。
+        return table.remove(readBuffer, 1)
+    elseif protocol == "TCP" then
+        -- 将缓冲区的数据链接成字符串
+        readStream = table.concat(readBuffer, "")
+        -- 清空缓冲区
+        readBuffer = {}
+        -- 如果用户输入的参数
+        -- if size == nil or size >= string.len(readStream) then
+        return readStream
+    -- else
+    --     local data = string.sub(readStream, 1, size)
+    --     readStream = string.sub(readStream, size + 1, -1)
+    --     table.insert(readBuffer, readStream)
+    --     return data
+    -- end
     end
 end
+
+
+
 
 --[[
 函数名：receive
@@ -157,9 +139,30 @@ prefix：通知的前缀
 ]]
 local function receive(data, prefix)
     local rid, len = string.match(data, ",(%d),(%d+)", string.len("+RECEIVE") + 1)
-    rcvd.id = tonumber(lid)
-    rcvd.len = tonumber(len)
-    return rcvdfilter
+    rid = tonumber(rid)
+    len = tonumber(len)
+    -- 如果len为0，则说明不是read需要的数据，发给ril继续处理
+    if len == 0 then return data end
+    local readFilter = function(dat)
+        len = len - string.len(dat)
+        if len == 0 then
+            -- 数据接收完成通知用户读取消息
+            table.insert(readBuffer, dat)
+            return ""
+        elseif len > 0 then
+            -- “+RECEIVE” 返回的数据分包了
+            table.insert(readBuffer, dat)
+            return "", readFilter
+        else
+            -- 如果小于0，说明包中含有别的命令的信息，扔回给ril.procatc处理
+            -- 截取剩余的包
+            table.insert(readBuffer, string.sub(dat, 1, len))
+            -- 分离别的命令返回的信息
+            dat = string.sub(dat, len + 1, -1)
+            return dat, readFilter
+        end
+    end
+    return readFilter
 end
 
 ril.regurc("+RECEIVE", receive)

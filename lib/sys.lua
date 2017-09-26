@@ -373,7 +373,7 @@ function run()
         -- 判断是否为定时器消息，并且消息是否注册
         if msg == rtos.MSG_TIMER and timerPool[param] then
             if param < TASK_TIMER_ID_MAX then
-                print("timerPool[msgPara] is task ----->", param, timerPool[param])
+                -- print("timerPool[msgPara] is task ----->", param, timerPool[param])
                 local taskId = timerPool[param]
                 timerPool[param] = nil
                 if taskTimerPool[taskId] == param then
@@ -382,9 +382,9 @@ function run()
                 end
             else
                 local cb = timerPool[param]
-                print("timerPool[msgPara] is msg ---->", param, timerPool[param])
+                -- print("timerPool[msgPara] is msg ---->", param, timerPool[param])
                 timerPool[param] = nil
-                print("sys.run msg --> cb", cb)
+                -- print("sys.run msg --> cb", cb)
                 if para[param] ~= nil then
                     cb(unpack(para[param]))
                 else
