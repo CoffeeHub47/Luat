@@ -114,15 +114,7 @@ function read(protocol)
         readStream = table.concat(readBuffer, "")
         -- 清空缓冲区
         readBuffer = {}
-        -- 如果用户输入的参数
-        -- if size == nil or size >= string.len(readStream) then
         return readStream
-    -- else
-    --     local data = string.sub(readStream, 1, size)
-    --     readStream = string.sub(readStream, size + 1, -1)
-    --     table.insert(readBuffer, readStream)
-    --     return data
-    -- end
     end
 end
 
