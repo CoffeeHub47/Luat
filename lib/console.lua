@@ -58,8 +58,8 @@ local function main_loop()
             write(table.concat(arg, "\t"))
             write("\r\n")
         end,
-        sendat = function(cmd)
-            ril.request(cmd, nil, function(cmd, success, response, intermediate)
+        sendat = function(cmd, data)
+            ril.request(cmd, data, function(cmd, success, response, intermediate)
                 if intermediate then
                     write("\r\n" .. intermediate .. "\r\n")
                 end
@@ -102,7 +102,7 @@ local function main_loop()
                     write(debug.traceback())
                 end)
             if wait_event_flag then
-                wait_event(wait_event_flag)
+                wait_event(wait_event_flag, 3000)
                 wait_event_flag = nil
             end
             -- 输出输入提示符
@@ -111,7 +111,7 @@ local function main_loop()
     end
 end
 
---- uart.on
+--- console.setup
 -- @param id 串口id
 -- @param baudrate 串口波特率
 -- @return 无
