@@ -20,6 +20,7 @@ LOGLEVEL_FATAL       = 0x06;
 
 -- 定义日志级别标签，分别对应日志级别的1-6
 local LEVEL_TAG = { 'T',  'D', 'I',  'W',  'E', 'F' }
+local PREFIX_FMT = "[%s]-[%s]"
 
 --- 内部函数，支持不同级别的log打印及判断
 -- @param level ，日志级别，可选LOGLEVEL_TRACE，LOGLEVEL_DEBUG等
@@ -34,7 +35,7 @@ local function _log(level, tag, ...)
   -- 如果日志级别为静默，或设定级别更高，则不输出日志
   if OPENLEVEL== LOG_SILENT or OPENLEVEL > level then return end
   -- 日志打印输出
-  local prefix = string.format("[%s]-[%s]",LEVEL_TAG[level],tag)
+  local prefix = string.format(PREFIX_FMT,LEVEL_TAG[level],tag)
   base.print(prefix, ...)
 
   -- TODO，支持hookup，例如对某级别日志做额外处理
