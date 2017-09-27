@@ -17,8 +17,14 @@ local valid = {0, 1, 2, 3, 4, 5, 6, 7}
 local ipStatus = false
 -- 单次发送数据最大值
 local SENDSIZE = 1460
+-- 缓冲区最大下标
+local bufferIndexMax = 49
 -- read函数缓冲区
 local readBuffer = {}
+-- 缓冲区下标
+local buffIndex = 0
+-- 缓冲区溢出操作模式"cover" or "discard"
+local overflow = "cover"
 -- read函数过滤器
 local readFilter
 
@@ -105,7 +111,7 @@ end
 -- @param
 -- @return
 -- @usage
-function read(protocol)
+function read(protocol, size)
     if protocol == "UDP" then
         -- 将 readBuffer 当作FIFO 缓冲区，先进先出。
         return table.remove(readBuffer, 1)
@@ -114,7 +120,15 @@ function read(protocol)
         readStream = table.concat(readBuffer, "")
         -- 清空缓冲区
         readBuffer = {}
-        return readStream
+        -- 如果用户输入的参数
+        if size == nil or size >= string.len(readStream) then
+            return readStream
+        else
+            local data = string.sub(readStream, 1, size)
+            readStream = string.sub(readStream, size + 1, -1)
+            table.insert(readBuffer, readStream)
+            return data
+        end
     end
 end
 
@@ -133,10 +147,15 @@ local function receive(data, prefix)
     local rid, len = string.match(data, ",(%d),(%d+)", string.len("+RECEIVE") + 1)
     rid = tonumber(rid)
     len = tonumber(len)
-    -- 如果len为0，则说明不是read需要的数据，发给ril继续处理
-    if len == 0 then return data end
-    local readFilter = function(dat)
+    -- 如果len为0，或者id 不是本实例的ID，则说明不是read需要的数据，发给ril继续处理
+    if len == 0 or rid ~= self.id then return data end
+    -- 处理缓冲区溢出模式
+    if buffIndex >= bufferIndexMax then if overflow == "cover" then buffIndex = 0 else return end end
+    -- 注册ril.procat 过滤器
+    readFilter = function(dat)
         len = len - string.len(dat)
+        -- 写入缓冲区的次数加1
+        buffIndex = buffIndex + 1
         if len == 0 then
             -- 数据接收完成通知用户读取消息
             table.insert(readBuffer, dat)
