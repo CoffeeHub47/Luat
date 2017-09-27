@@ -21,6 +21,7 @@ require "led"
 led.setup(pio.P0_28)
 -- 测试任务
 require "testTask"
+require "testSocket"
 
 sys.init(0, 0)
 sys.run()
