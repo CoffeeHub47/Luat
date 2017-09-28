@@ -13,7 +13,7 @@ local sockets = {}
 -- 单次发送数据最大值
 local SENDSIZE = 1460
 -- 缓冲区最大下标
-local indexMax = 49
+local INDEX_MAX = 49
 -- ip 服务激活标志
 local ipStatus = false
 sys.subscribe("IP_STATUS_SUCCESS", function()ipStatus = true end)
@@ -62,7 +62,6 @@ local function socket(protocol)
         id = id,
         protocol = protocol,
         co = co,
-        index = 0,
         input = {},
         wait = "",
     }
@@ -204,9 +203,8 @@ ril.regurc("+RECEIVE", function(urc, prefix)
                 if sockets[id].wait == "+RECEIVE" then
                     coroutine.resume(sockets[id].co, true, s)
                 else -- 数据进缓冲区，缓冲区溢出采用覆盖模式
-                    if sockets[id].index > indexMax then sockets[id].index = 0 end
+                    if #sockets[id].input > INDEX_MAX then sockets[id].input = {} end
                     table.insert(sockets[id].input, s)
-                    sockets[id].index = sockets[id].index + 1
                 end
             end
             return data

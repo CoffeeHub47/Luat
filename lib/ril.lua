@@ -104,7 +104,7 @@ intermediate：AT命令的应答中的中间信息
 返回值：无
 ]]
 local function defrsp(cmd, success, response, intermediate)
-    log.debug("ril.defrsp", cmd, success, response, intermediate)
+    log.info("ril.defrsp", cmd, success, response, intermediate)
 end
 
 --AT命令的应答处理表
@@ -172,7 +172,7 @@ data：urc内容
 返回值：无
 ]]
 local function defurc(data)
-    log.debug("ril.defurc", data)
+    log.info("ril.defurc", data)
 end
 
 --urc的处理表
@@ -225,7 +225,7 @@ data：收到的数据
 返回值：无
 ]]
 local function procatc(data)
-    log.debug("ril.proatc", data)
+    log.info("ril.proatc", data)
     --如果命令的应答是多行字符串格式
     if interdata and cmdtype == MLINE then
         --不出现OK\r\n，则认为应答还未结束
@@ -275,11 +275,11 @@ local function procatc(data)
     elseif data == "> " then
         --发送短信
         if cmdhead == "+CMGS" then
-            log.debug("ril.procatc.send", currarg)
+            log.info("ril.procatc.send", currarg)
             vwrite(uart.ATC, currarg, "\026")
         --发送数据
         elseif cmdhead == "+CIPSEND" or cmdhead == "+SSLSEND" or cmdhead == "+SSLCERT" then
-            log.debug("ril.procatc.send", currarg)
+            log.info("ril.procatc.send", currarg)
             vwrite(uart.ATC, currarg)
         else
             log.error("error promot cmd:", currcmd)
@@ -388,7 +388,7 @@ local function getcmd(item)
         --命令延时执行时间
         delay = item.delay
     else
-        log.debug("ril.getcmd", "getpack unknown item")
+        log.info("ril.getcmd", "getpack unknown item")
         return
     end
     --命令前缀
@@ -462,7 +462,7 @@ local function sendat()
     --启动AT命令应答超时定时器
     sys.timer_start(atimeout, TIMEOUT)
     
-    log.debug("ril.sendat", currcmd)
+    log.info("ril.sendat", currcmd)
     --向虚拟串口中发送AT命令
     vwrite(uart.ATC, currcmd .. "\r")
 end
