@@ -31,7 +31,7 @@ local LIB_ERR_FILE, libErr, extLibErr = "/lib_err.txt", ""
 
 ---检查底层软件版本号和lib脚本需要的最小底层软件版本号是否匹配
 -- @return 无
--- @usage log.checkCoreVer()
+-- @usage errdump.checkCoreVer()
 function checkCoreVer()
     local realver = sys.getCoreVer()
     --如果没有获取到底层软件版本号
@@ -55,7 +55,7 @@ end
 
 --- 获取LIB_ERR_FILE文件中的错误信息，给外部模块使用
 -- @return string ,LIB_ERR_FILE文件中的错误信息
--- @usage sys.getExtLibErr()
+-- @usage errdump.getExtLibErr()
 function getExtLibErr()
     return extLibErr or (readTxt(LIB_ERR_FILE) or "")
 end
@@ -63,7 +63,7 @@ end
 --- 读取文本文件中的全部内容
 -- @string f：文件路径
 -- @return string ,文本文件中的全部内容，读取失败为空字符串或者nil
--- @usage log.writeTxt(LIB_ERR_FILE,libErr)
+-- @usage errdump.readTxt(LIB_ERR_FILE,libErr)
 function readTxt(f)
     local file, rt = io.open(f, "r")
     if not file then print("log.readTxt no open -----> ", f) return "" end
@@ -76,7 +76,7 @@ end
 -- @string f：文件路径
 -- @string v：要写入的文本内容
 -- @return 无
--- @usage log.writeTxt(LIB_ERR_FILE,libErr)
+-- @usage errdump.writeTxt(LIB_ERR_FILE,libErr)
 local function writeTxt(f, v)
     local file = io.open(f, "w")
     if not file then print("log.writeTxt no open -----> ", f) return end
@@ -87,7 +87,7 @@ end
 
 --- 打印LIB_ERR_FILE文件中的错误信息
 -- @return 无
--- @usage log.initErr()
+-- @usage readTxt.initErr()
 function initErr()
     extLibErr = readTxt(LIB_ERR_FILE) or ""
     print("log.initErr -----> ", extLibErr)
@@ -99,7 +99,7 @@ end
 --- 追加错误信息到LIB_ERR_FILE文件中
 -- @param s：错误信息，用户自定义，一般是string类型，重启后的trace中会打印出此错误信息
 -- @return 无
--- @usage log.appendErr("net working timeout!")
+-- @usage readTxt.appendErr("net working timeout!")
 function appendErr(s)
     print("log.appendErr -----> ", s)
     libErr = libErr .. s

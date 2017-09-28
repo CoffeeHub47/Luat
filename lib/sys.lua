@@ -5,7 +5,7 @@
 -- @copyright openLuat.com
 -- @release 2017.9.13
 require "patch"
-require "log"
+require "errdump"
 module(..., package.seeall)
 
 -- lib脚本版本号，只要lib中的任何一个脚本做了修改，都需要更新此版本号
@@ -49,7 +49,7 @@ end
 -- @usage sys.restart('程序超时软件重启')
 function restart(r)
     assert(r and r ~= "", "sys.restart cause null")
-    log.appendErr("restart[" .. r .. "];")
+    errdump.appendErr("restart[" .. r .. "];")
     rtos.restart()
 end
 
@@ -181,8 +181,8 @@ function init(mode, lprfnc)
         f:close()
     end
     -- 打印LIB_ERR_FILE文件中的错误信息
-    log.initErr()
-    log.checkCoreVer()
+    errdump.initErr()
+    errdump.checkCoreVer()
 end
 
 ------------------------------------------ rtos消息回调处理部分 ------------------------------------------
