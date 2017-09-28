@@ -12,11 +12,16 @@ local valid = {"0", "1", "2", "3", "4", "5", "6", "7"}
 local sockets = {}
 -- 单次发送数据最大值
 local SENDSIZE = 1460
-
+-- 缓冲区最大下标
+local indexMax = 49
+-- ip 服务激活标志
 local ipStatus = false
 sys.subscribe("IP_STATUS_SUCCESS", function()ipStatus = true end)
 sys.subscribe("CONNECTION_LINK_ERROR", function()ipStatus = false end)
 
+--[[
+订阅rsp返回的消息处理函数
+]]
 local function onSocketURC(data, prefix)
     local id, result = string.match(data, "(%d), *([%u :%d]+)")
     if not sockets[id] then
@@ -38,6 +43,7 @@ local function onSocketURC(data, prefix)
     end
 end
 
+-- 创建socket函数
 local mt = {__index = {}}
 local function socket(protocol)
     local id = table.remove(valid)
@@ -51,11 +57,12 @@ local function socket(protocol)
         log.warn("socket.socket: socket must be called in coroutine")
         return nil
     end
-    
+    -- 实例的属性参数表
     local o = {
         id = id,
         protocol = protocol,
         co = co,
+        index = 0,
         input = {},
         wait = "",
     }
@@ -159,7 +166,6 @@ end
 local function onResponse(cmd, success, response, intermediate)
     local prefix = string.match(cmd, "AT(%+%u+)")
     local id = string.match(cmd, "AT%+%u+=(%d)")
-    
     if not sockets[id] then
         log.warn('socket: response on nil socket', cmd, response)
         return
@@ -181,11 +187,9 @@ ril.regrsp("+CIPSTART", onResponse)
 ril.regurc("+RECEIVE", function(urc, prefix)
     local id, len = string.match(urc, ",(%d),(%d+)", string.len("+RECEIVE") + 1)
     len = tonumber(len)
-    
     if len == 0 then return urc end
-    
+    sys.publish("SOCKET_ACTIVE")
     local cache = {}
-    
     local function filter(data)
         --剩余未收到的数据长度
         if string.len(data) >= len then -- at通道的内容比剩余未收到的数据多
@@ -199,14 +203,17 @@ ril.regurc("+RECEIVE", function(urc, prefix)
                 local s = table.concat(cache)
                 if sockets[id].wait == "+RECEIVE" then
                     coroutine.resume(sockets[id].co, true, s)
-                else
+                else -- 数据进缓冲区，缓冲区溢出采用覆盖模式
+                    if sockets[id].index > indexMax then sockets[id].index = 0 end
                     table.insert(sockets[id].input, s)
+                    sockets[id].index = sockets[id].index + 1
                 end
             end
             return data
         else
             table.insert(cache, data)
             len = len - string.len(data)
+            sys.publish("IP_STATUS_SUCCESS")
             return "", filter
         end
     end
