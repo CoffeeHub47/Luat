@@ -36,11 +36,11 @@ local staLed = "net"
 local blinkCount = 4
 
 -- netLink 链接状态
--- netLinkSta = "sleep"    -- 睡眠
+-- netLinkSta = "flymode"  -- 飞行模式
 -- netLinkSta = "sign"     -- 注册
 -- netLinkSta == "hold"    -- 保持
 -- netLinkSta == "active"  -- 活动
-local netLinkSta = "sign"
+local netLinkSta = "FLYMODE"
 
 -- 电量指示灯亮、灭、周期参数单位ms
 local blinkLight, blinkDark, blinkDull = 200, 300, 3000
@@ -81,7 +81,7 @@ end
 -- @return 无
 -- @usage led.setNetLinkSta("hold")
 function setNetLinkSta(str)
-    netLinkSta = str or netLink
+    netLinkSta = str or netLinkSta
 end
 
 --- 设置电量指示灯状态
@@ -110,13 +110,13 @@ end
 ]]
 local function netLink(ledPin)
     --while true do
-    if netLinkSta == "sleep" then
+    if netLinkSta == "FLYMODE" then
         ledPin(0)
-    elseif netLinkSta == "sign" then
+    elseif netLinkSta == "NET_STATE_REGISTERED" then
         blinkPwm(ledPin, 500, 500)
-    elseif netLinkSta == "hold" then
-        blinkPwm(ledPin, 900, 100)
-    elseif netLinkSta == "active" then
+    elseif netLinkSta == "IP_STATUS_SUCCESS" then
+        blinkPwm(ledPin, 100, 1900)
+    elseif netLinkSta == "SOCKET_ACTIVE" then
         blinkPwm(ledPin, 100, 100)
     end
 --print("led.netlink is running!")
@@ -198,3 +198,9 @@ end
 function setup(ledPin)
     sys.taskInit(taskLed, pins.setup(ledPin or LED_PIN, 0))
 end
+
+sys.subscribe("NET_STATE_REGISTERED", function()netLinkSta = "NET_STATE_REGISTERED" end)
+sys.subscribe("IP_STATUS_SUCCESS", function()netLinkSta = "IP_STATUS_SUCCESS" end)
+sys.subscribe("SOCKET_ACTIVE", function()netLinkSta = "SOCKET_ACTIVE" end)
+sys.subscribe("NET_STATE_UNREGISTER",function()netLinkSta = "FLYMODE" end)
+sys.subscribe("FLYMODE", function()netLinkSta = "FLYMODE" end)

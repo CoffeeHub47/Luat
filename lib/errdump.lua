@@ -4,7 +4,7 @@
 -- @license MIT
 -- @copyright openLuat
 -- @release 2017.09.26
-module(...,package.seeall)
+module(..., package.seeall)
 
 local base = _G
 local table = require "table"
@@ -29,29 +29,6 @@ local lowPowerFun, lpring
 --错误信息文件以及错误信息内容
 local LIB_ERR_FILE, libErr, extLibErr = "/lib_err.txt", ""
 
----检查底层软件版本号和lib脚本需要的最小底层软件版本号是否匹配
--- @return 无
--- @usage errdump.checkCoreVer()
-function checkCoreVer()
-    local realver = sys.getCoreVer()
-    --如果没有获取到底层软件版本号
-    if not realver or realver == "" then
-        appendErr("checkCoreVer[no core ver error];")
-        return
-    end
-    
-    local buildver = string.match(realver, "Luat_V(%d+)_")
-    --如果底层软件版本号格式错误
-    if not buildver then
-        appendErr("checkCoreVer[core ver format error]" .. realver .. ";")
-        return
-    end
-    
-    --lib脚本需要的底层软件版本号大于底层软件的实际版本号
-    if tonumber(string.match(sys.CORE_MIN_VER, "Luat_V(%d+)_")) > tonumber(buildver) then
-        print("checkCoreVer[core ver match warn]" .. realver .. "," .. sys.CORE_MIN_VER .. ";")
-    end
-end
 
 --- 获取LIB_ERR_FILE文件中的错误信息，给外部模块使用
 -- @return string ,LIB_ERR_FILE文件中的错误信息

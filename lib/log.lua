@@ -95,3 +95,22 @@ end
 function fatal(tag, ...)
   _log(LOGLEVEL_FATAL,tag,...)
 end
+
+
+--- 开启或者关闭print的打印输出功能
+-- @bool v：false或nil为关闭，其余为开启
+-- @param uartid：输出Luatrace的端口：nil表示host口，1表示uart1,2表示uart2
+-- @number baudrate：number类型，uartid不为nil时，此参数才有意义，表示波特率，默认115200 \
+-- 支持1200,2400,4800,9600,14400,19200,28800,38400,57600,76800,115200,230400,460800,576000,921600,1152000,4000000
+-- @return 无
+-- @usage sys.openTrace(1,nil,921600)
+function openTrace(v, uartid, baudrate)
+    if uartid then
+        if v then
+            uart.setup(uartid, baudrate or 115200, 8, uart.PAR_NONE, uart.STOP_1)
+        else
+            uart.close(uartid)
+        end
+    end
+    rtos.set_trace(v and 1 or 0, uartid)
+end

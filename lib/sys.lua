@@ -29,13 +29,6 @@ local taskTimerPool = {}
 local para = {}
 
 
---工作模式
---SIMPLE_MODE：简单模式，默认不会开启“每一分钟产生一个内部消息”、“定时查询csq”、“定时查询ceng”的功能
---FULL_MODE：完整模式，默认会开启“每一分钟产生一个内部消息”、“定时查询csq”、“定时查询ceng”的功能
-SIMPLE_MODE, FULL_MODE = 0, 1
---默认为完整模式
-local workMode = FULL_MODE
-
 --- 启动GSM协议栈。例如在充电开机未启动GSM协议栈状态下，如果用户长按键正常开机，此时调用此接口启动GSM协议栈即可
 -- @return 无
 -- @usage sys.powerOn()
@@ -51,53 +44,6 @@ function restart(r)
     assert(r and r ~= "", "sys.restart cause null")
     errdump.appendErr("restart[" .. r .. "];")
     rtos.restart()
-end
-
---- 设置工作模式
--- @number v 工作模式，默认完整模式\
--- SIMPLE_MODE：简单模式，默认不会开启“每一分钟产生一个内部消息”、“定时查询csq”、“定时查询ceng”的功能\
--- FULL_MODE：完整模式，默认会开启“每一分钟产生一个内部消息”、“定时查询csq”、“定时查询ceng”的功能
--- @return Boole ,成功返回true，否则返回nil
--- @usage sys.setworkmode(FULL_MODE)
-function setWorkMode(v)
-    if workMode ~= v and (v == SIMPLE_MODE or v == FULL_MODE) then
-        workMode = v
-        --产生一个工作模式变化的内部消息"SYS_WORKMODE_IND"
-        dispatch("SYS_WORKMODE_IND")
-        return true
-    end
-end
-
---- 获取工作模式
--- @return number ,当前工作模式
--- @usage mode = sys.getWorkMode()
-function getWorkMode()
-    return workMode
-end
-
---- 获取底层软件版本号
--- @return string ,版本号字符串
--- @usage coreVer = sys.getCorVer()
-function getCoreVer()
-    return rtos.get_version()
-end
-
---- 开启或者关闭print的打印输出功能
--- @bool v：false或nil为关闭，其余为开启
--- @param uartid：输出Luatrace的端口：nil表示host口，1表示uart1,2表示uart2
--- @number baudrate：number类型，uartid不为nil时，此参数才有意义，表示波特率，默认115200 \
--- 支持1200,2400,4800,9600,14400,19200,28800,38400,57600,76800,115200,230400,460800,576000,921600,1152000,4000000
--- @return 无
--- @usage sys.openTrace(1,nil,921600)
-function openTrace(v, uartid, baudrate)
-    if uartid then
-        if v then
-            uart.setup(uartid, baudrate or 115200, 8, uart.PAR_NONE, uart.STOP_1)
-        else
-            uart.close(uartid)
-        end
-    end
-    rtos.set_trace(v and 1 or 0, uartid)
 end
 
 --- Task任务延时函数，只能用于任务函数中
@@ -154,6 +100,30 @@ function taskInit(fun, ...)
     return co
 end
 
+--[[
+检查底层软件版本号和lib脚本需要的最小底层软件版本号是否匹配
+]]
+local function checkCoreVer()
+    local realver = rtos.get_version()
+    --如果没有获取到底层软件版本号
+    if not realver or realver == "" then
+        appendErr("checkCoreVer[no core ver error];")
+        return
+    end
+    
+    local buildver = string.match(realver, "Luat_V(%d+)_")
+    --如果底层软件版本号格式错误
+    if not buildver then
+        appendErr("checkCoreVer[core ver format error]" .. realver .. ";")
+        return
+    end
+    
+    --lib脚本需要的底层软件版本号大于底层软件的实际版本号
+    if tonumber(string.match(CORE_MIN_VER, "Luat_V(%d+)_")) > tonumber(buildver) then
+        print("checkCoreVer[core ver match warn]" .. realver .. "," .. CORE_MIN_VER .. ";")
+    end
+end
+
 --- Luat平台初始化
 -- @param mode 充电开机是否启动GSM协议栈，1不启动，否则启动
 -- @param lprfnc 用户应用脚本中定义的“低电关机处理函数”，如果有函数名，则低电时，本文件中的run接口不会执行任何动作，否则，会延时1分钟自动关机
@@ -163,10 +133,10 @@ function init(mode, lprfnc)
     -- 用户应用脚本中必须定义PROJECT和VERSION两个全局变量，否则会死机重启，如何定义请参考各个demo中的main.lua
     assert(PROJECT and PROJECT ~= "" and VERSION and VERSION ~= "", "Undefine PROJECT or VERSION")
     collectgarbage("setpause", 80)
-
+    
     -- 设置AT命令的虚拟串口
     uart.setup(uart.ATC, 0, 0, uart.PAR_NONE, uart.STOP_1)
-    print("poweron reason:", rtos.poweron_reason(), PROJECT, VERSION, SCRIPT_LIB_VER, getCoreVer())
+    print("poweron reason:", rtos.poweron_reason(), PROJECT, VERSION, SCRIPT_LIB_VER, rtos.get_version())
     if mode == 1 then
         -- 充电开机
         if rtos.poweron_reason() == rtos.POWERON_CHARGER then
@@ -182,7 +152,7 @@ function init(mode, lprfnc)
     end
     -- 打印LIB_ERR_FILE文件中的错误信息
     errdump.initErr()
-    errdump.checkCoreVer()
+    checkCoreVer()
 end
 
 ------------------------------------------ rtos消息回调处理部分 ------------------------------------------
@@ -284,7 +254,7 @@ function subscribe(id, callback)
         print("warning: sys.subscribe invalid parameter", id, callback)
         return
     end
-    table.insert(pendingSubscribeReqeusts, { id, callback })
+    table.insert(pendingSubscribeReqeusts, {id, callback})
 end
 
 --- 取消订阅消息
@@ -296,7 +266,7 @@ function unsubscribe(id, callback)
         print("warning: sys.unsubscribe invalid parameter", id, callback)
         return
     end
-    table.insert(pendingUnsubscribeRequests, { id, callback })
+    table.insert(pendingUnsubscribeRequests, {id, callback})
 end
 
 --- 发布内部消息，存储在内部消息队列中
@@ -318,7 +288,7 @@ local function dispatch()
         table.insert(subscribers[id], callback)
     end
     pendingSubscribeReqeusts = {}
-
+    
     for _, req in ipairs(pendingUnsubscribeRequests) do
         local id, callback = req[1], req[2]
         if not subscribers[id] then return end
@@ -329,7 +299,7 @@ local function dispatch()
         end
     end
     pendingUnsubscribeRequests = {}
-
+    
     while true do
         if #messageQueue == 0 then
             break
@@ -340,7 +310,7 @@ local function dispatch()
                 if type(callback) == "function" then
                     callback(unpack(message, 2, #message))
                 elseif type(callback) == "thread" then
-                    coroutine.resume(callback, message[1], { unpack(message, 2, #message) })
+                    coroutine.resume(callback, message[1], {unpack(message, 2, #message)})
                 end
             end
         end
@@ -349,7 +319,7 @@ end
 
 -- rtos消息回调
 local handlers = {}
-setmetatable(handlers, { __index = function() return function() end end, })
+setmetatable(handlers, {__index = function() return function() end end, })
 
 --- 注册rtos消息回调处理函数
 -- @number id 消息类型id
@@ -391,7 +361,7 @@ function run()
                     cb()
                 end
             end
-            --其他消息（音频消息、充电管理消息、按键消息等）
+        --其他消息（音频消息、充电管理消息、按键消息等）
         else
             handlers[msg](param)
         end

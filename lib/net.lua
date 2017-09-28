@@ -45,7 +45,26 @@ local cellinfo, flyMode, multicellcb = {}
 --userSocketConn：用户socket是否连接上后台
 local userSocketConn, cgatt = nil
 
-
+--- 飞行模式开关
+-- @bool mode，true:飞行模式开，false:飞行模式关
+-- @return 无
+-- @usage net.switchFly(mode)
+function switchFly(mode)
+    flyMode = mode
+    -- 处理飞行模式
+    if mode then
+        ril.reuqest("AT+CFUN=4")
+        publish("FLYMODE")
+    -- 处理退出飞行模式
+    else
+        ril.request("AT+CFUN=1")
+        --处理查询定时器
+        csqQueryPoll()
+        cengQueryPoll()
+        --复位GSM网络状态
+        neturc("2", "+CREG")
+    end
+end
 --注册标志参数，creg3：true为没注册，为false为注册成功
 local creg3
 --[[
@@ -368,7 +387,7 @@ end
 -- @usage net.cengQueryPoll(60000) --每分钟查询1次
 function cengQueryPoll(period)
     -- 不是飞行模式 并且 工作模式为完整模式
-    if not flyMode and sys.getWorkMode() == sys.FULL_MODE then
+    if not flyMode then
         if nil ~= period then
             --启动定时器
             sys.timer_start(cengQueryPoll, period, period)
@@ -377,7 +396,7 @@ function cengQueryPoll(period)
         ril.request("AT+CENG?")
         return true
     else
-        print("net.cengQueryPoll is stop ---->\t,flyMode:", flyMode, ",workMOde:", sys.getWorkMode())
+        print("net.cengQueryPoll is stop ---->\t,flyMode:", flyMode)
         return false
     end
 end
@@ -389,7 +408,7 @@ end
 -- @usage net.csqQueryPoll(60000) --每分钟查询1次
 function csqQueryPoll(period)
     --不是飞行模式 并且 工作模式为完整模式
-    if not flyMode and sys.getWorkMode() == sys.FULL_MODE then
+    if not flyMode then
         if nil ~= period then
             --启动定时器
             sys.timer_start(csqQueryPoll, period, period)
@@ -398,7 +417,7 @@ function csqQueryPoll(period)
         ril.request("AT+CSQ")
         return true
     else
-        print("net.csqQueryPoll is stop ---->\t,flyMode:", flyMode, ",workMOde:", sys.getWorkMode())
+        print("net.csqQueryPoll is stop ---->\t,flyMode:", flyMode)
         return false
     end
 end
@@ -411,12 +430,12 @@ end
 -- @usage net.startQueryAll(60000) -- 6分钟查询1次信号强度和基站信息
 -- @usage net.startQueryAll(60000,600000) -- 1分钟查询1次信号强度，10分钟查询1次基站信息
 function startQueryAll(...)
-    if not flyMode and sys.getWorkMode() == sys.FULL_MODE then
+    if not flyMode then
         csqQueryPoll(arg[1])
         cengQueryPoll(arg[2])
         return true
     else
-        print("net.startQueryAll is stop ---->\t,flyMode:", flyMode, ",workMOde:", sys.getWorkMode())
+        print("net.startQueryAll is stop ---->\t,flyMode:", flyMode)
         return false
     end
 end
@@ -442,28 +461,6 @@ sys.subscribe("SIM_IND", function(para)
         --产生内部消息NET_STATE_CHANGED，表示网络状态发生变化
         publish("NET_STATE_UNREGISTER")
     end
-end)
-
--- 处理飞行模式切换
-sys.subscribe("FLYMODE_IND", function(para)
-        --飞行模式状态发生变化
-        if flyMode ~= para then
-            flyMode = para
-        end
-        --退出飞行模式
-        if not para then
-            --处理查询定时器
-            csqQueryPoll()
-            cengQueryPoll()
-            --复位GSM网络状态
-            neturc("2", "+CREG")
-        end
-end)
-
--- 处理工作模式切换
-sys.subscribe("SYS_WORKMODE_IND", function()
-    cengQueryPoll()
-    csqQueryPoll()
 end)
 
 --注册+CREG和+CENG通知的处理函数

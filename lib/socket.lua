@@ -7,14 +7,14 @@
 require("link")
 module(..., package.seeall)
 
-local valid = { "0", "1", "2", "3", "4", "5", "6", "7" }
+local valid = {"0", "1", "2", "3", "4", "5", "6", "7"}
 local sockets = {}
 -- 单次发送数据最大值
 local SENDSIZE = 1460
 
 local ipStatus = false
-sys.subscribe("IP_STATUS_SUCCESS", function() ipStatus = true end)
-sys.subscribe("CONNECTION_LINK_ERROR", function() ipStatus = false end)
+sys.subscribe("IP_STATUS_SUCCESS", function()ipStatus = true end)
+sys.subscribe("CONNECTION_LINK_ERROR", function()ipStatus = false end)
 
 local function onSocketURC(data, prefix)
     local id, result = string.match(data, "(%d), *([%u :%d]+)")
@@ -22,7 +22,7 @@ local function onSocketURC(data, prefix)
         print('socket: response on nil socket', cmd, response)
         return
     end
-
+    
     if result == "CONNECT OK" or result == "CONNECT FAIL" then
         if sockets[id].wait == "+CIPSTART" then
             coroutine.resume(sockets[id].co, result == "CONNECT OK")
@@ -31,26 +31,26 @@ local function onSocketURC(data, prefix)
         end
         return
     end
-
+    
     if string.find(result, "ERROR") or result == "CLOSED" then
         coroutine.resume(sockets[id].co, false)
     end
 end
 
-local mt = { __index = {} }
+local mt = {__index = {}}
 local function socket(protocol)
     local id = table.remove(valid)
     if not id then
         print("socket.socket: too many sockets")
         return nil
     end
-
+    
     local co = coroutine.running()
     if not co then
         print("socket.socket: socket must be called in coroutine")
         return nil
     end
-
+    
     local o = {
         id = id,
         protocol = protocol,
@@ -58,9 +58,9 @@ local function socket(protocol)
         input = {},
         wait = "",
     }
-
+    
     sockets[id] = o
-
+    
     return setmetatable(o, mt)
 end
 
@@ -87,17 +87,17 @@ end
 -- @usage  c = socket.tcp(); c:connect();
 function mt.__index:connect(address, port)
     assert(self.co == coroutine.running(), "socket:connect: coroutine mismatch")
-
+    
     if not ipStatus then
         print("socket.connect: ip not ready")
         return false
     end
-
+    
     if cc and cc.anycallexist() then
         print("socket:connect: call exist, cannot connect")
         return false
     end
-
+    
     ril.request(string.format("AT+CIPSTART=%d,\"%s\",\"%s\",%s", self.id, self.protocol, address, port))
     ril.regurc(self.id, onSocketURC)
     self.wait = "+CIPSTART"
@@ -109,6 +109,7 @@ end
 -- @return result true - 成功，false - 失败
 -- @usage  c = socket.tcp(); c:connect(); c:send("12345678");
 function mt.__index:send(data)
+    sys.publish("SOCKET_ACTIVE")
     assert(self.co == coroutine.running(), "socket:send: coroutine mismatch")
     for i = 1, string.len(data), SENDSIZE do
         -- 按最大MTU单元对data分包
@@ -118,7 +119,7 @@ function mt.__index:send(data)
         self.wait = "+CIPSEND"
         if not coroutine.yield() then return false end
     end
-
+    sys.publish("IP_STATUS_SUCCESS")
     return true
 end
 
@@ -129,12 +130,12 @@ end
 -- @usage  c = socket.tcp(); c:connect(); result, data = c:recv()
 function mt.__index:recv()
     assert(self.co == coroutine.running(), "socket:recv: coroutine mismatch")
-
+    
     if #self.input == 0 then
         self.wait = "+RECEIVE"
         return coroutine.yield()
     end
-
+    
     if self.protocol == "UDP" then
         return true, table.remove(self.input)
     else
@@ -161,12 +162,12 @@ end
 local function onResponse(cmd, success, response, intermediate)
     local prefix = string.match(cmd, "AT(%+%u+)")
     local id = string.match(cmd, "AT%+%u+=(%d)")
-
+    
     if not sockets[id] then
         print('socket: response on nil socket', cmd, response)
         return
     end
-
+    
     if sockets[id].wait == prefix then
         if prefix == "+CIPSTART" and success then
             -- CIPSTART 返回OK只是表示被接受
@@ -183,11 +184,11 @@ ril.regrsp("+CIPSTART", onResponse)
 ril.regurc("+RECEIVE", function(urc, prefix)
     local id, len = string.match(urc, ",(%d),(%d+)", string.len("+RECEIVE") + 1)
     len = tonumber(len)
-
+    
     if len == 0 then return urc end
-
+    
     local cache = {}
-
+    
     local function filter(data)
         --剩余未收到的数据长度
         if string.len(data) >= len then -- at通道的内容比剩余未收到的数据多
@@ -212,6 +213,6 @@ ril.regurc("+RECEIVE", function(urc, prefix)
             return "", filter
         end
     end
-
+    
     return filter
 end)
