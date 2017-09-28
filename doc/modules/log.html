@@ -40,6 +40,7 @@
 <ul class="nowrap">
   <li><a href="../modules/clib.html">clib</a></li>
   <li><a href="../modules/console.html">console</a></li>
+  <li><strong>log</strong></li>
   <li><a href="../modules/led.html">led</a></li>
   <li><a href="../modules/link.html">link</a></li>
   <li><strong>log</strong></li>
@@ -50,6 +51,7 @@
   <li><a href="../modules/link.html">link</a></li>
   <li><a href="../modules/sys.html">sys</a></li>
   <li><a href="../modules/wdt.html">wdt</a></li>
+  <li><a href="../modules/testSocket.html">testSocket</a></li>
   <li><a href="../modules/test.html">test</a></li>
 </ul>
 <h2>Manual</h2>
@@ -62,40 +64,48 @@
 <div id="content">
 
 <h1>Module <code>log</code></h1>
-<p>模块功能：系统日志记录</p>
+<p>模块功能：系统日志记录,分级别日志工具</p>
 <p>
 
 </p>
     <h3>Info:</h3>
     <ul>
         <li><strong>Copyright</strong>: openLuat</li>
-        <li><strong>Release</strong>: 2017.09.13</li>
+        <li><strong>Release</strong>: 2017.09.26</li>
         <li><strong>License</strong>: MIT</li>
-        <li><strong>Author</strong>: 稀饭放姜</li>
+        <li><strong>Author</strong>: 稀饭放姜,wing</li>
     </ul>
 
 
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#checkCoreVer">checkCoreVer ()</a></td>
-	<td class="summary">检查底层软件版本号和lib脚本需要的最小底层软件版本号是否匹配</td>
+	<td class="name" nowrap><a href="#trace">trace (tag, ...)</a></td>
+	<td class="summary">输出trace级别的日志</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#getExtLibErr">getExtLibErr ()</a></td>
-	<td class="summary">获取LIB<em>ERR</em>FILE文件中的错误信息，给外部模块使用</td>
+	<td class="name" nowrap><a href="#debug">debug (tag, ...)</a></td>
+	<td class="summary">输出debug级别的日志</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#readTxt">readTxt (f)</a></td>
-	<td class="summary">读取文本文件中的全部内容</td>
+	<td class="name" nowrap><a href="#info">info (tag, ...)</a></td>
+	<td class="summary">输出info级别的日志</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#initErr">initErr ()</a></td>
-	<td class="summary">打印LIB<em>ERR</em>FILE文件中的错误信息</td>
+	<td class="name" nowrap><a href="#warn">warn (tag, ...)</a></td>
+	<td class="summary">输出warn级别的日志</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#appendErr">appendErr (s)</a></td>
-	<td class="summary">追加错误信息到LIB<em>ERR</em>FILE文件中</td>
+	<td class="name" nowrap><a href="#error">error (tag, ...)</a></td>
+	<td class="summary">输出error级别的日志</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#fatal">fatal (tag, ...)</a></td>
+	<td class="summary">输出fatal级别的日志</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#openTrace">openTrace (v, uartid, baudrate)</a></td>
+	<td class="summary">开启或者关闭print的打印输出功能</td>
 	</tr>
 </table>
 
@@ -107,116 +117,20 @@
 
     <dl class="function">
     <dt>
-    <a name = "checkCoreVer"></a>
-    <strong>checkCoreVer ()</strong>
+    <a name = "trace"></a>
+    <strong>trace (tag, ...)</strong>
     </dt>
     <dd>
-    检查底层软件版本号和lib脚本需要的最小底层软件版本号是否匹配
-
-
-
-    <h3>Returns:</h3>
-    <ol>
-
-        无
-    </ol>
-
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">log.checkCoreVer()</pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "getExtLibErr"></a>
-    <strong>getExtLibErr ()</strong>
-    </dt>
-    <dd>
-    获取LIB<em>ERR</em>FILE文件中的错误信息，给外部模块使用
-
-
-
-    <h3>Returns:</h3>
-    <ol>
-
-        string ,LIB<em>ERR</em>FILE文件中的错误信息
-    </ol>
-
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">sys.getExtLibErr()</pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "readTxt"></a>
-    <strong>readTxt (f)</strong>
-    </dt>
-    <dd>
-    读取文本文件中的全部内容
+    输出trace级别的日志
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">f</span>
-            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        ：文件路径
+        <li><span class="parameter">tag</span>
+           ，模块或功能名称，作为日志前缀
         </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-        string ,文本文件中的全部内容，读取失败为空字符串或者nil
-    </ol>
-
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">log.writeTxt(LIB_ERR_FILE,libErr)</pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "initErr"></a>
-    <strong>initErr ()</strong>
-    </dt>
-    <dd>
-    打印LIB<em>ERR</em>FILE文件中的错误信息
-
-
-
-    <h3>Returns:</h3>
-    <ol>
-
-        无
-    </ol>
-
-
-
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">log.initErr()</pre>
-    </ul>
-
-</dd>
-    <dt>
-    <a name = "appendErr"></a>
-    <strong>appendErr (s)</strong>
-    </dt>
-    <dd>
-    追加错误信息到LIB<em>ERR</em>FILE文件中
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">s</span>
-        ：错误信息，用户自定义，一般是string类型，重启后的trace中会打印出此错误信息
+        <li><span class="parameter">...</span>
+           ，日志内容，可变参数
         </li>
     </ul>
 
@@ -230,7 +144,205 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">log.appendErr(<span class="string">"net working timeout!"</span>)</pre>
+        <pre class="example">trace(<span class="string">'moduleA'</span>, <span class="string">'log content'</span>)</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "debug"></a>
+    <strong>debug (tag, ...)</strong>
+    </dt>
+    <dd>
+    输出debug级别的日志
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tag</span>
+           ，模块或功能名称，作为日志前缀
+        </li>
+        <li><span class="parameter">...</span>
+           ，日志内容，可变参数
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        无
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example"><span class="global">debug</span>(<span class="string">'moduleA'</span>, <span class="string">'log content'</span>)</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "info"></a>
+    <strong>info (tag, ...)</strong>
+    </dt>
+    <dd>
+    输出info级别的日志
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tag</span>
+           ，模块或功能名称，作为日志前缀
+        </li>
+        <li><span class="parameter">...</span>
+           ，日志内容，可变参数
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        无
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">info(<span class="string">'moduleA'</span>, <span class="string">'log content'</span>)</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "warn"></a>
+    <strong>warn (tag, ...)</strong>
+    </dt>
+    <dd>
+    输出warn级别的日志
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tag</span>
+           ，模块或功能名称，作为日志前缀
+        </li>
+        <li><span class="parameter">...</span>
+           ，日志内容，可变参数
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        无
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">warn(<span class="string">'moduleA'</span>, <span class="string">'log content'</span>)</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "error"></a>
+    <strong>error (tag, ...)</strong>
+    </dt>
+    <dd>
+    输出error级别的日志
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tag</span>
+           ，模块或功能名称，作为日志前缀
+        </li>
+        <li><span class="parameter">...</span>
+           ，日志内容，可变参数
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        无
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example"><span class="global">error</span>(<span class="string">'moduleA'</span>, <span class="string">'log content'</span>)</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "fatal"></a>
+    <strong>fatal (tag, ...)</strong>
+    </dt>
+    <dd>
+    输出fatal级别的日志
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">tag</span>
+           ，模块或功能名称，作为日志前缀
+        </li>
+        <li><span class="parameter">...</span>
+           ，日志内容，可变参数
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        无
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">fatal(<span class="string">'moduleA'</span>, <span class="string">'log content'</span>)</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "openTrace"></a>
+    <strong>openTrace (v, uartid, baudrate)</strong>
+    </dt>
+    <dd>
+    开启或者关闭print的打印输出功能
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">v</span>
+            <span class="types"><span class="type">bool</span></span>
+        ：false或nil为关闭，其余为开启
+        </li>
+        <li><span class="parameter">uartid</span>
+        ：输出Luatrace的端口：nil表示host口，1表示uart1,2表示uart2
+        </li>
+        <li><span class="parameter">baudrate</span>
+            <span class="types"><span class="type">number</span></span>
+        ：number类型，uartid不为nil时，此参数才有意义，表示波特率，默认115200 \
+ 支持1200,2400,4800,9600,14400,19200,28800,38400,57600,76800,115200,230400,460800,576000,921600,1152000,4000000
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        无
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">sys.openTrace(<span class="number">1</span>,<span class="keyword">nil</span>,<span class="number">921600</span>)</pre>
     </ul>
 
 </dd>
@@ -241,7 +353,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2017-09-25 12:02:30 </i>
+<i style="float:right;">Last updated 2017-09-28 14:39:22 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

@@ -1,10 +1,11 @@
---- socket
--- @module socket
+--- 数据链路激活、SOCKET管理(创建、连接、数据收发、状态维护)
+-- @module link
 -- @author 稀饭放姜、小强
 -- @license MIT
 -- @copyright openLuat.com
 -- @release 2017.9.25
 require("link")
+-- require("log")
 module(..., package.seeall)
 
 local valid = {"0", "1", "2", "3", "4", "5", "6", "7"}
@@ -19,7 +20,7 @@ sys.subscribe("CONNECTION_LINK_ERROR", function()ipStatus = false end)
 local function onSocketURC(data, prefix)
     local id, result = string.match(data, "(%d), *([%u :%d]+)")
     if not sockets[id] then
-        print('socket: response on nil socket', cmd, response)
+        log.error('socket: response on nil socket', cmd, response)
         return
     end
     
@@ -27,7 +28,7 @@ local function onSocketURC(data, prefix)
         if sockets[id].wait == "+CIPSTART" then
             coroutine.resume(sockets[id].co, result == "CONNECT OK")
         else
-            print("socket: error urc", sockets[id].wait)
+            log.error("socket: error urc", sockets[id].wait)
         end
         return
     end
@@ -41,13 +42,13 @@ local mt = {__index = {}}
 local function socket(protocol)
     local id = table.remove(valid)
     if not id then
-        print("socket.socket: too many sockets")
+        log.warn("socket.socket: too many sockets")
         return nil
     end
     
     local co = coroutine.running()
     if not co then
-        print("socket.socket: socket must be called in coroutine")
+        log.warn("socket.socket: socket must be called in coroutine")
         return nil
     end
     
@@ -64,16 +65,14 @@ local function socket(protocol)
     return setmetatable(o, mt)
 end
 
---- socket.tcp()
--- @param 无
+--- 创建基于TCP的socket对象
 -- @return 无
 -- @usage c = socket.tcp()
 function tcp()
     return socket("TCP")
 end
 
---- socket.udo()
--- @param 无
+--- 创建基于UDP的socket对象
 -- @return 无
 -- @usage c = socket.udp()
 function udp()
@@ -89,12 +88,12 @@ function mt.__index:connect(address, port)
     assert(self.co == coroutine.running(), "socket:connect: coroutine mismatch")
     
     if not ipStatus then
-        print("socket.connect: ip not ready")
+        log.info("socket.connect: ip not ready")
         return false
     end
     
     if cc and cc.anycallexist() then
-        print("socket:connect: call exist, cannot connect")
+        log.info("socket:connect: call exist, cannot connect")
         return false
     end
     
@@ -124,7 +123,6 @@ function mt.__index:send(data)
 end
 
 --- socket:recv
--- @param 无
 -- @return result true - 成功，false - 失败
 -- @return data 如果成功的话，返回接收到的数据
 -- @usage  c = socket.tcp(); c:connect(); result, data = c:recv()
@@ -146,7 +144,6 @@ function mt.__index:recv()
 end
 
 --- socket:close
--- @param 无
 -- @return 无
 -- @usage  c = socket.tcp(); c:connect(); c:send("123"); c:close()
 function mt.__index:close()
@@ -164,7 +161,7 @@ local function onResponse(cmd, success, response, intermediate)
     local id = string.match(cmd, "AT%+%u+=(%d)")
     
     if not sockets[id] then
-        print('socket: response on nil socket', cmd, response)
+        log.warn('socket: response on nil socket', cmd, response)
         return
     end
     
@@ -197,7 +194,7 @@ ril.regurc("+RECEIVE", function(urc, prefix)
             -- 剩下的数据仍按at进行后续处理
             data = string.sub(data, len + 1, -1)
             if not sockets[id] then
-                print('socket: receive on nil socket', id)
+                log.warn('socket: receive on nil socket', id)
             else
                 local s = table.concat(cache)
                 if sockets[id].wait == "+RECEIVE" then
@@ -213,6 +210,5 @@ ril.regurc("+RECEIVE", function(urc, prefix)
             return "", filter
         end
     end
-    
     return filter
 end)

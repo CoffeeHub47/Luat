@@ -1,6 +1,6 @@
 --- testSocket
 -- @module testSocket
--- @author 小强
+-- @author Сǿ
 -- @license MIT
 -- @copyright openLuat.com
 -- @release 2017.9.27
@@ -29,7 +29,7 @@ sys.taskInit(function()
                 break
             end
 
-            print("test.socket.tcp: recv", s)
+            log.info("test.socket.tcp: recv", s)
         end
 
         c:close()
@@ -57,7 +57,7 @@ sys.taskInit(function()
                 break
             end
 
-            print("test.socket.udp: recv", s)
+            log.info("test.socket.udp: recv", s)
         end
 
         c:close()

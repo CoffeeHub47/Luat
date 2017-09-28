@@ -10,11 +10,12 @@ local sys = require "sys"
 local ril = require "ril"
 local pio = require "pio"
 local sim = require "sim"
+local log = require "log"
 module("net")
 
 --加载常用的全局函数至本地
 local publish = sys.publish
-local tonumber, tostring, print = base.tonumber, base.tostring, base.print
+local tonumber, tostring = base.tonumber, base.tostring
 
 --GSM网络状态：
 --INIT：开机初始化中的状态
@@ -219,7 +220,7 @@ local crsmUpdCnt = 0
 -- @string intermediate ,AT命令的应答中的中间信息
 -- @return 无
 function crsmResponse(cmd, success, response, intermediate)
-    print("net.crsmResponse ---->\t", success)
+    log.debug("net.crsmResponse", success)
     if success then
         sys.restart("net.crsmResponse suc")
     else
@@ -396,7 +397,7 @@ function cengQueryPoll(period)
         ril.request("AT+CENG?")
         return true
     else
-        print("net.cengQueryPoll is stop ---->\t,flyMode:", flyMode)
+        log.info("net.cengQueryPoll", "flymode:", flyMode)
         return false
     end
 end
@@ -417,7 +418,7 @@ function csqQueryPoll(period)
         ril.request("AT+CSQ")
         return true
     else
-        print("net.csqQueryPoll is stop ---->\t,flyMode:", flyMode)
+        log.info("net.csqQueryPoll", "flymode:", flyMode)
         return false
     end
 end
@@ -435,7 +436,7 @@ function startQueryAll(...)
         cengQueryPoll(arg[2])
         return true
     else
-        print("net.startQueryAll is stop ---->\t,flyMode:", flyMode)
+        log.info("sim.startQuerAll", "flyMode:", flyMode)
         return false
     end
 end
@@ -450,7 +451,7 @@ end
 
 -- 处理SIM卡状态消息，SIM卡工作不正常时更新网络状态为未注册
 sys.subscribe("SIM_IND", function(para)
-    print("net.simInd ---->\t", simerrsta, para)
+    log.info("SIM.subscribe", simerrsta, para)
     if simerrsta ~= (para ~= "RDY") then
         simerrsta = (para ~= "RDY")
     end

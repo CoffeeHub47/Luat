@@ -6,6 +6,7 @@
 -- @release 2017.9.13
 require "patch"
 require "errdump"
+require "log"
 module(..., package.seeall)
 
 -- lib脚本版本号，只要lib中的任何一个脚本做了修改，都需要更新此版本号
@@ -63,7 +64,7 @@ function wait(ms)
         break
     end
     -- 调用core的rtos定时器
-    if 1 ~= rtos.timer_start(taskTimerId, ms) then print("rtos.timer_start error") return end
+    if 1 ~= rtos.timer_start(taskTimerId, ms) then log.debug("rtos.timer_start error") return end
     -- 挂起调用的任务线程
     local message, data = coroutine.yield()
     if message then
@@ -80,8 +81,6 @@ end
 -- @return result 接收到消息返回true，超时返回false
 -- @return data 接收到消息返回消息参数
 -- @usage result, data = sys.waitUntil("SIM_IND", 120000)
--- @usage if result then print("received message", data) end
--- @usage elseif print("timeout") end
 function waitUntil(id, ms)
     subscribe(id, coroutine.running())
     local message, data = wait(ms)
@@ -120,7 +119,7 @@ local function checkCoreVer()
     
     --lib脚本需要的底层软件版本号大于底层软件的实际版本号
     if tonumber(string.match(CORE_MIN_VER, "Luat_V(%d+)_")) > tonumber(buildver) then
-        print("checkCoreVer[core ver match warn]" .. realver .. "," .. CORE_MIN_VER .. ";")
+        log.info("ril.checkCoreVer" .. realver .. "," .. CORE_MIN_VER .. ";")
     end
 end
 
@@ -136,7 +135,7 @@ function init(mode, lprfnc)
     
     -- 设置AT命令的虚拟串口
     uart.setup(uart.ATC, 0, 0, uart.PAR_NONE, uart.STOP_1)
-    print("poweron reason:", rtos.poweron_reason(), PROJECT, VERSION, SCRIPT_LIB_VER, rtos.get_version())
+    log.info("poweron reason:", rtos.poweron_reason(), PROJECT, VERSION, SCRIPT_LIB_VER, rtos.get_version())
     if mode == 1 then
         -- 充电开机
         if rtos.poweron_reason() == rtos.POWERON_CHARGER then
@@ -147,7 +146,7 @@ function init(mode, lprfnc)
     -- 如果存在脚本运行错误文件，打开文件，打印错误信息
     local f = io.open("/luaerrinfo.txt", "r")
     if f then
-        print(f:read("*a") or "")
+        log.error(f:read("*a") or "")
         f:close()
     end
     -- 打印LIB_ERR_FILE文件中的错误信息
@@ -227,7 +226,7 @@ function timer_start(fnc, ms, ...)
         end
     end
     --调用底层接口启动定时器
-    if rtos.timer_start(msgId, ms) ~= 1 then print("rtos.timer_start error") return end
+    if rtos.timer_start(msgId, ms) ~= 1 then log.debug("rtos.timer_start error") return end
     --如果存在可变参数，在定时器参数表中保存参数
     if arg.n ~= 0 then
         para[msgId] = arg
@@ -251,7 +250,7 @@ local pendingUnsubscribeRequests = {}
 -- @usage subscribe("NET_STATUS_IND", callback)
 function subscribe(id, callback)
     if type(id) ~= "string" or (type(callback) ~= "function" and type(callback) ~= "thread") then
-        print("warning: sys.subscribe invalid parameter", id, callback)
+        log.warn("warning: sys.subscribe invalid parameter", id, callback)
         return
     end
     table.insert(pendingSubscribeReqeusts, {id, callback})
@@ -263,7 +262,7 @@ end
 -- @usage unsubscribe("NET_STATUS_IND", callback)
 function unsubscribe(id, callback)
     if type(id) ~= "string" or (type(callback) ~= "function" and type(callback) ~= "thread") then
-        print("warning: sys.unsubscribe invalid parameter", id, callback)
+        log.warn("warning: sys.unsubscribe invalid parameter", id, callback)
         return
     end
     table.insert(pendingUnsubscribeRequests, {id, callback})
@@ -343,7 +342,6 @@ function run()
         -- 判断是否为定时器消息，并且消息是否注册
         if msg == rtos.MSG_TIMER and timerPool[param] then
             if param < TASK_TIMER_ID_MAX then
-                -- print("timerPool[msgPara] is task ----->", param, timerPool[param])
                 local taskId = timerPool[param]
                 timerPool[param] = nil
                 if taskTimerPool[taskId] == param then
@@ -352,9 +350,7 @@ function run()
                 end
             else
                 local cb = timerPool[param]
-                -- print("timerPool[msgPara] is msg ---->", param, timerPool[param])
                 timerPool[param] = nil
-                -- print("sys.run msg --> cb", cb)
                 if para[param] ~= nil then
                     cb(unpack(para[param]))
                 else

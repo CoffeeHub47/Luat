@@ -20,3 +20,18 @@
 ## 下载地址
 
 - 如果你想下载这个项目,请点击：[下载地址](https://github.com/airm2m-open/Luat/archive/master.zip)
+
+# 模块介绍
+
+## log.lua
+
+- trace是极其细节的，例如 uart收到原始数据流，追加buffer的时候 
+这个数据可能是模块调试的时候才需要
+
+- debug是一般细节的，例如 uart，buffer追加后的信息，进入相关parse的时候，打印buffer内容或者at指令集的交互
+
+- info是业务级别的， 例如，打开串口了，LCD数据切换了，按键响应了等等
+
+- warn
+- error
+    >   fatal这个级别准备将来做hook，和errdump绑定，意图是模块只能重启， 在"死之前"将相关要搜集的信心dump到err文件中留作分析

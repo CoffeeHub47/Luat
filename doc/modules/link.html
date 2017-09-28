@@ -40,6 +40,7 @@
 <ul class="nowrap">
   <li><a href="../modules/clib.html">clib</a></li>
   <li><a href="../modules/console.html">console</a></li>
+  <li><a href="../modules/log.html">log</a></li>
   <li><a href="../modules/led.html">led</a></li>
   <li><strong>link</strong></li>
   <li><a href="../modules/log.html">log</a></li>
@@ -50,6 +51,7 @@
   <li><strong>link</strong></li>
   <li><a href="../modules/sys.html">sys</a></li>
   <li><a href="../modules/wdt.html">wdt</a></li>
+  <li><a href="../modules/testSocket.html">testSocket</a></li>
   <li><a href="../modules/test.html">test</a></li>
 </ul>
 <h2>Manual</h2>
@@ -78,8 +80,28 @@
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#connect">connect (id, protocol, address, port)</a></td>
-	<td class="summary">socket连接服务器请求</td>
+	<td class="name" nowrap><a href="#tcp">tcp ()</a></td>
+	<td class="summary">创建基于TCP的socket对象</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#udp">udp ()</a></td>
+	<td class="summary">创建基于UDP的socket对象</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#mt.__index:connect">mt.__index:connect (address, port)</a></td>
+	<td class="summary">socket:connect 连接服务器</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#mt.__index:send">mt.__index:send (data)</a></td>
+	<td class="summary">socket:send</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#mt.__index:recv">mt.__index:recv ()</a></td>
+	<td class="summary">socket:recv</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#mt.__index:close">mt.__index:close ()</a></td>
+	<td class="summary">socket:close</td>
 	</tr>
 </table>
 
@@ -91,41 +113,158 @@
 
     <dl class="function">
     <dt>
-    <a name = "connect"></a>
-    <strong>connect (id, protocol, address, port)</strong>
+    <a name = "tcp"></a>
+    <strong>tcp ()</strong>
     </dt>
     <dd>
-    socket连接服务器请求
+    创建基于TCP的socket对象
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        无
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">c = socket.tcp()</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "udp"></a>
+    <strong>udp ()</strong>
+    </dt>
+    <dd>
+    创建基于UDP的socket对象
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        无
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">c = socket.udp()</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "mt.__index:connect"></a>
+    <strong>mt.__index:connect (address, port)</strong>
+    </dt>
+    <dd>
+    socket:connect 连接服务器
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">id</span>
-            <span class="types"><span class="type">number</span></span>
-        ,socket id
-        </li>
-        <li><span class="parameter">protocol</span>
-            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        ,传输层协议TCP或者UDP
-        </li>
         <li><span class="parameter">address</span>
-            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-        ,服务器地址
+         ip地址或者域名
         </li>
         <li><span class="parameter">port</span>
-            <span class="types"><span class="type">number</span></span>
-        ,服务器端口
+         端口
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-        bool,请求成功同步返回true，否则false；
+        result true - 成功，false - 失败
     </ol>
 
 
 
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">c = socket.tcp(); c:connect();</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "mt.__index:send"></a>
+    <strong>mt.__index:send (data)</strong>
+    </dt>
+    <dd>
+    socket:send
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">data</span>
+         数据
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        result true - 成功，false - 失败
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">c = socket.tcp(); c:connect(); c:send(<span class="string">"12345678"</span>);</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "mt.__index:recv"></a>
+    <strong>mt.__index:recv ()</strong>
+    </dt>
+    <dd>
+    socket:recv
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+        result true - 成功，false - 失败</li>
+        <li>
+        data 如果成功的话，返回接收到的数据</li>
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">c = socket.tcp(); c:connect(); result, data = c:recv()</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "mt.__index:close"></a>
+    <strong>mt.__index:close ()</strong>
+    </dt>
+    <dd>
+    socket:close
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        无
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">c = socket.tcp(); c:connect(); c:send(<span class="string">"123"</span>); c:close()</pre>
+    </ul>
 
 </dd>
 </dl>
@@ -135,7 +274,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2017-09-25 12:02:30 </i>
+<i style="float:right;">Last updated 2017-09-28 14:39:22 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

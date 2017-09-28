@@ -4,7 +4,6 @@
 -- @license MIT
 -- @copyright openLuat
 -- @release 2017.02.13
-
 --定义模块,导入依赖库
 local base = _G
 local table = require "table"
@@ -12,11 +11,11 @@ local string = require "string"
 local uart = require "uart"
 local rtos = require "rtos"
 local sys = require "sys"
+local log = require "log"
 module("ril")
 
 --加载常用的全局函数至本地
 local setmetatable = base.setmetatable
-local print = base.print
 local type = base.type
 local vwrite = uart.write
 local vread = uart.read
@@ -105,7 +104,7 @@ intermediate：AT命令的应答中的中间信息
 返回值：无
 ]]
 local function defrsp(cmd, success, response, intermediate)
-    print("default response:", cmd, success, response, intermediate)
+    log.debug("ril.defrsp", cmd, success, response, intermediate)
 end
 
 --AT命令的应答处理表
@@ -173,7 +172,7 @@ data：urc内容
 返回值：无
 ]]
 local function defurc(data)
-    print("ril.defurc: ---->\t", data)
+    log.debug("ril.defurc", data)
 end
 
 --urc的处理表
@@ -226,7 +225,7 @@ data：收到的数据
 返回值：无
 ]]
 local function procatc(data)
-    print("ril.proatc: ---->\t", data)
+    log.debug("ril.proatc", data)
     --如果命令的应答是多行字符串格式
     if interdata and cmdtype == MLINE then
         --不出现OK\r\n，则认为应答还未结束
@@ -276,14 +275,14 @@ local function procatc(data)
     elseif data == "> " then
         --发送短信
         if cmdhead == "+CMGS" then
-            print("send:", currarg)
+            log.debug("ril.procatc.send", currarg)
             vwrite(uart.ATC, currarg, "\026")
         --发送数据
         elseif cmdhead == "+CIPSEND" or cmdhead == "+SSLSEND" or cmdhead == "+SSLCERT" then
-            print("send:", currarg)
+            log.debug("ril.procatc.send", currarg)
             vwrite(uart.ATC, currarg)
         else
-            print("error promot cmd:", currcmd)
+            log.error("error promot cmd:", currcmd)
         end
     else
         --无类型
@@ -389,20 +388,20 @@ local function getcmd(item)
         --命令延时执行时间
         delay = item.delay
     else
-        print("getpack unknown item")
+        log.debug("ril.getcmd", "getpack unknown item")
         return
     end
     --命令前缀
     head = string.match(cmd, "AT([%+%*]*%u+)")
     
     if head == nil then
-        print("request error cmd:", cmd)
+        log.error("ril.getcmd", "request error cmd:", cmd)
         return
     end
     --这两个命令必须有参数
     if head == "+CMGS" or head == "+CIPSEND" then -- 必须有参数
         if arg == nil or arg == "" then
-            print("request error no arg", head)
+            log.error("ril.getcmd", "request error no arg", head)
             return
         end
     end
@@ -463,7 +462,7 @@ local function sendat()
     --启动AT命令应答超时定时器
     sys.timer_start(atimeout, TIMEOUT)
     
-    print("ril.sendat: ---->\t", currcmd)
+    log.debug("ril.sendat", currcmd)
     --向虚拟串口中发送AT命令
     vwrite(uart.ATC, currcmd .. "\r")
 end

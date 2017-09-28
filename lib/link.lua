@@ -4,9 +4,13 @@
 -- @license MIT
 -- @copyright openLuat.com
 -- @release 2017.9.20
+local sys = require "sys"
+local ril = require "ril"
+local log = require "log"
 module(..., package.seeall)
 local publish = sys.publish
 local request = ril.request
+
 
 -- apn，用户名，密码
 local apnname = "CMNET"
@@ -68,11 +72,11 @@ local function ipState(data, prefix)
         sys.timer_start(request, 2000, "AT+CIPSTATUS")
     end
     ipStatus = status
-    print("link.ipState IP STATUS is :\t", ipStatus)
+    log.info("link.ipState", "IP STATUS is:", ipStatus)
 end
 
 ril.regurc("STATE", ipState)
-ril.regurc("+PDP", function() request("AT+CIPSTATUS") end)
+ril.regurc("+PDP", function()request("AT+CIPSTATUS") end)
 
 -- initial 只能初始化1次，这里是初始化完成标志位
 local inited = false

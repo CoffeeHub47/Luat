@@ -5,7 +5,7 @@
 -- @copyright openLuat
 -- @release 2017.09.23 11:34
 module(..., package.seeall)
-
+-- require "log"
 require "pins"
 
 --[[模块和看门狗互喂任务
@@ -21,21 +21,21 @@ local function taskWdt(rst, wd)
     while true do
         -- 模块 ---> 看门狗 喂脉冲
         wd(0)
-        print("AirM2M --> WATCHDOG >>>>>>\t", 'OK')
+        log.info("wdt.taskWdt", "AirM2M --> WATCHDOG : OK")
         sys.wait(2000)
         -- 看门狗 ---> 模块 喂脉冲
         for i = 1, 30 do
             if 0 ~= wd() then
                 sys.wait(100)
             else
-                print("AirM2M <-- WatchDog <<<<<<\t", 'OK')
+                log.info("wdt.taskWdt", "AirM2M <-- WatchDog : OK")
                 break
             end
             -- 狗死了
             if 30 == i then
                 -- 复位狗
                 rst(0)
-                print("The WatchDog <--> AirM2M didn't respond:\t", "wdt reset 153b")
+                log.error("wdt.taskWdt", "WatchDog <--> AirM2M didn't respond : wdt reset 153b")
                 sys.wait(100)
             end
         end

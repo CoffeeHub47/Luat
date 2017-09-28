@@ -15,7 +15,6 @@ local os = require "os"
 local string = require "string"
 
 -- 加载常用的全局函数至本地
-local print = base.print
 local unpack = base.unpack
 local ipairs = base.ipairs
 local type = base.type
@@ -43,7 +42,7 @@ end
 -- @usage errdump.readTxt(LIB_ERR_FILE,libErr)
 function readTxt(f)
     local file, rt = io.open(f, "r")
-    if not file then print("log.readTxt no open -----> ", f) return "" end
+    if not file then log.info("errdump.readTxt", "no open:", f) return "" end
     rt = file:read("*a")
     file:close()
     return rt
@@ -56,7 +55,7 @@ end
 -- @usage errdump.writeTxt(LIB_ERR_FILE,libErr)
 local function writeTxt(f, v)
     local file = io.open(f, "w")
-    if not file then print("log.writeTxt no open -----> ", f) return end
+    if not file then log.info("errdump.writeTxt", "no open:", f) return end
     file:write(v)
     file:close()
 end
@@ -67,7 +66,7 @@ end
 -- @usage readTxt.initErr()
 function initErr()
     extLibErr = readTxt(LIB_ERR_FILE) or ""
-    print("log.initErr -----> ", extLibErr)
+    log.info("errdump.initErr", extLibErr)
     --删除LIB_ERR_FILE文件
     os.remove(LIB_ERR_FILE)
 end
@@ -78,7 +77,7 @@ end
 -- @return 无
 -- @usage readTxt.appendErr("net working timeout!")
 function appendErr(s)
-    print("log.appendErr -----> ", s)
+    log.info("errdump.appendErr", s)
     libErr = libErr .. s
     writeTxt(LIB_ERR_FILE, libErr)
 end
