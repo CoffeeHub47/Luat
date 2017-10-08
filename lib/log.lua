@@ -29,7 +29,7 @@ local PREFIX_FMT = "[%s]-[%s]"
 -- @usage _log(LOGLEVEL_DEBUG,tag, 'log content')
 local function _log(level, tag, ...)
     -- INFO 作为默认日志级别
-    local OPENLEVEL = base.LOG_LEVEL and base.LOG_LEVEL or LOGLEVEL_INFO
+    local OPENLEVEL = LOG_LEVEL and LOG_LEVEL or LOGLEVEL_INFO
     -- 如果日志级别为静默，或设定级别更高，则不输出日志
     if OPENLEVEL == LOG_SILENT or OPENLEVEL > level then return end
     -- 日志打印输出
