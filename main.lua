@@ -3,6 +3,9 @@
 --VERSION：ascii string类型，如果使用Luat物联云平台固件升级的功能，必须按照"X.X.X"定义，X表示1位数字；否则可随便定义
 PROJECT = "DEMO_TASK"
 VERSION = "2.0.0"
+-- 日志级别
+require "log"
+LOG_LEVEL = log.LOGLEVEL_TRACE
 require "sys"
 -- 加载GSM
 require "net"
@@ -22,6 +25,9 @@ led.setup(pio.P0_28)
 -- 测试任务
 require "testTask"
 require "testSocket"
+-- 测试LCD任务
+require "mono_lcd_spi_ssh1106"
+require "testLcd"
 
 sys.init(0, 0)
 sys.run()
