@@ -2,14 +2,14 @@
 module(..., package.seeall)
 
 
---æ¸…ç©ºLCDæ˜¾ç¤ºç¼“å†²åŒº
--- disp.clear()
---ä»åæ ‡16,0ä½ç½®å¼€å§‹æ˜¾ç¤º"æ¬¢è¿ä½¿ç”¨Luat"
--- disp.puttext("1234567890ABCDEFG", 0, 0)
--- disp.puttext("1234567890ABCDEFG", 0, 16)
--- disp.puttext("1234567890ABCDEFG", 0, 32)
--- disp.puttext("1234567890ABCDEFG", 0, 48)
---æ˜¾ç¤ºlogoå›¾ç‰‡
+--Çå¿ÕLCDÏÔÊ¾»º³åÇø
+disp.clear()
+--´Ó×ø±ê16,0Î»ÖÃ¿ªÊ¼ÏÔÊ¾"»¶Ó­Ê¹ÓÃLuat"
+disp.puttext("1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZÖĞ", 0, 0)
+-- disp.puttext("abcdefghijklmnop", 0, 16)
+-- disp.puttext("ABCDEFGHIJKLMNOP", 0, 32)
+-- disp.puttext("~!@#$%^&*()_+{}|", 0, 48)
+--ÏÔÊ¾logoÍ¼Æ¬
 --disp.putimage("/ldata/logo_"..(lcd.BPP==1 and "mono.bmp" or "color.png"),lcd.BPP==1 and 41 or 1,lcd.BPP==1 and 18 or 33)
---åˆ·æ–°LCDæ˜¾ç¤ºç¼“å†²åŒºåˆ°LCDå±å¹•ä¸Š
--- disp.update()
+--Ë¢ĞÂLCDÏÔÊ¾»º³åÇøµ½LCDÆÁÄ»ÉÏ
+disp.update()

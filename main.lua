@@ -6,6 +6,7 @@ VERSION = "2.0.0"
 -- 日志级别
 require "log"
 LOG_LEVEL = log.LOGLEVEL_TRACE
+
 require "sys"
 -- 加载GSM
 require "net"
@@ -15,7 +16,7 @@ net.startQueryAll(8 * 1000, 600 * 1000)
 require "link"
 -- 控制台
 require "console"
-console.setup(1, 115200)
+-- console.setup(1, 115200)
 -- 看门狗
 require "wdt"
 wdt.setup(pio.P0_31, pio.P0_29)
