@@ -358,8 +358,10 @@ function run()
                 end
             end
         --其他消息（音频消息、充电管理消息、按键消息等）
-        else
+        elseif type(msg) == "number" then
             handlers[msg](param)
+        else
+            handlers[msg.id](msg)
         end
     end
 end

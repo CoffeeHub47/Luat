@@ -23,7 +23,7 @@ module(..., package.seeall)
 参数  ：无
 返回值：无
 ]]
-local function init()
+function init(rst, dc, cs)
     local para = {
         width = 128, --分辨率宽度，128像素；用户根据屏的参数自行修改
         height = 64, --分辨率高度，64像素；用户根据屏的参数自行修改
@@ -31,9 +31,9 @@ local function init()
         bus = disp.BUS_SPI4LINE, --LCD专用SPI引脚接口，不可修改
         xoffset = 2, --Y轴偏移
         hwfillcolor = 0xFFFF, --填充色，黑色
-        pinrst = pio.P0_14, --reset，复位引脚
-        pinrs = pio.P0_18, --rs，命令/数据选择引脚
-        pincs = pio.p0_15, -- cs ，片选引脚
+        pinrst = rst or pio.P0_14, --reset，复位引脚
+        pinrs = dc or pio.P0_18, --rs，命令/数据选择引脚
+        pincs = cs or pio.p0_15, -- cs ，片选引脚
         --初始化命令
         initcmd = {
             0xAE, -- 关闭显示面板
@@ -74,11 +74,9 @@ local function init()
             0xAF,
         }
     }
+    --控制SPI引脚的电压域
+    pmd.ldoset(6, pmd.LDO_VLCD)
     disp.init(para)
     disp.clear()
     disp.update()
 end
-
---控制SPI引脚的电压域
-pmd.ldoset(6, pmd.LDO_VLCD)
-init()

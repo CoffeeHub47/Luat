@@ -27,7 +27,6 @@ led.setup(pio.P0_28)
 require "testTask"
 require "testSocket"
 -- 测试LCD任务
-require "mono_lcd_spi_ssh1106"
 require "testLcd"
 
 sys.init(0, 0)

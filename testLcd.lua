@@ -1,25 +1,70 @@
-
 module(..., package.seeall)
+require "mono_lcd_spi_ssh1106"
+require "config"
+require "pins"
+-- èœå•æ¡çš„èœå•å›¾æ ‡åˆ—è¡¨
+local menuBar = config.rootMenu
 
 
---Çå¿ÕLCDÏÔÊ¾»º³åÇø
-disp.clear()
---´Ó×ø±ê16,0Î»ÖÃ¿ªÊ¼ÏÔÊ¾"»¶Ó­Ê¹ÓÃLuat"
--- disp.puttext("-- ÓïÑÔ²Ëµ¥ --", 0, 0)
--- disp.puttext("   Ó¢ÎÄ²Ëµ¥", 0, 16)
--- disp.puttext(" > µÂÎÄ²Ëµ¥", 0, 32)
--- disp.puttext("   ÈÕÎÄ²Ëµ¥", 0, 48)
---ÏÔÊ¾logoÍ¼Æ¬
+
+--ä»åæ ‡16,0ä½ç½®å¼€å§‹æ˜¾ç¤º"æ¬¢è¿ä½¿ç”¨Luat"
+-- disp.puttext("-- è¯­è¨€èœå• --", 0, 0)
+-- disp.puttext("   è‹±æ–‡èœå•", 0, 16)
+-- disp.puttext(" > å¾·æ–‡èœå•", 0, 32)
+-- disp.puttext("   æ—¥æ–‡èœå•", 0, 48)
+--æ˜¾ç¤ºlogoå›¾ç‰‡
 -- disp.setcolor(0x0000)
 -- disp.drawrect(0,32,64,32,0xffff)
 -- disp.setcolor(0xffff)
-disp.putimage("/ldata/msg.bmp",32,0,-1)
-disp.putimage("/ldata/device_small.bmp",0,12)
-disp.putimage("/ldata/menu_small.bmp",96,12)
+-- disp.putimage("/ldata/msg.bmp", 32, 0, -1)
+-- disp.putimage("/ldata/device_small.bmp", 0, 12)
+-- disp.putimage("/ldata/menu_small.bmp", 96, 12)
+-- -- disp.putimage("/ldata/2.bmp",64,0,-1)
+-- -- disp.putimage("/ldata/up.bmp",56,16)
+function append(fname)
+    menuBar = {}
+    f = io.open("/ldata/" .. fname .. ".ini")
+    for s in f:lines() do table.insert(menuBar, s) end
+    f.close()
+end
 
--- disp.putimage("/ldata/2.bmp",64,0,-1)
--- disp.putimage("/ldata/up.bmp",56,16)
-disp.puttext("..", 10, 40)
-disp.puttext("..", 107, 40)
---Ë¢ĞÂLCDÏÔÊ¾»º³åÇøµ½LCDÆÁÄ»ÉÏ
-disp.update()
+function changeMenu(id)
+    if id <= 0 then id = #menuBar end
+    for i = 1, id do
+        table.insert(menuBar, table.remove(menuBar, 1))
+    end
+end
+
+function displayMenu()
+    --æ¸…ç©ºLCDæ˜¾ç¤ºç¼“å†²åŒº
+    disp.clear()
+    disp.putimage("/ldata/" .. menuBar[1] .. ".bmp", 32, 0, -1)
+    disp.putimage("/ldata/" .. menuBar[#menuBar] .. "_small.bmp", 0, 12)
+    disp.putimage("/ldata/" .. menuBar[2] .. "_small.bmp", 96, 12)
+    disp.puttext("..", 10, 40)
+    disp.puttext("..", 107, 40)
+    --åˆ·æ–°LCDæ˜¾ç¤ºç¼“å†²åŒºåˆ°LCDå±å¹•ä¸Š
+    disp.update()
+end
+
+local function leftKey(intid)
+    if (intid == cpu.INT_GPIO_NEGEDGE) then
+        table.insert(menuBar, table.remove(menuBar, 1))
+        displayMenu()
+    end
+end
+
+local function rightKey(intid)
+    if (intid == cpu.INT_GPIO_NEGEDGE) then
+        table.insert(menuBar, 1, table.remove(menuBar))
+        displayMenu()
+    end
+end
+
+mono_lcd_spi_ssh1106.init()
+displayMenu()
+pmd.ldoset(6, pmd.LDO_VIB)
+pins.setup(pio.P0_8)
+pins.setup(pio.P0_10, leftKey)
+pins.setup(pio.P0_11, rightKey)
+pins.setup(pio.P0_12)
