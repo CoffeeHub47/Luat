@@ -3,9 +3,15 @@ require "mono_lcd_spi_ssh1106"
 require "config"
 require "pins"
 -- 菜单条的菜单图标列表
-local menuBar = config.rootMenu
-
-
+local menuBar, menuItems = config.rootMenu, config.menuItems
+--LCD分辨率的宽度和高度(单位是像素)
+WIDTH, HEIGHT, BPP = disp.getlcdinfo()
+--1个ASCII字符宽度为8像素，高度为16像素；汉字宽度和高度都为16像素
+CHAR_WIDTH = 8
+-- 同屏菜单级数最大值
+local SHOW_MAX = 4
+-- 同级菜单级数最大值
+local ITEMS_MAX = 8
 
 --从坐标16,0位置开始显示"欢迎使用Luat"
 -- disp.puttext("-- 语言菜单 --", 0, 0)
@@ -21,18 +27,11 @@ local menuBar = config.rootMenu
 -- disp.putimage("/ldata/menu_small.bmp", 96, 12)
 -- -- disp.putimage("/ldata/2.bmp",64,0,-1)
 -- -- disp.putimage("/ldata/up.bmp",56,16)
-function append(fname)
+function appendMenuBar(fname)
     menuBar = {}
     f = io.open("/ldata/" .. fname .. ".ini")
     for s in f:lines() do table.insert(menuBar, s) end
     f.close()
-end
-
-function changeMenu(id)
-    if id <= 0 then id = #menuBar end
-    for i = 1, id do
-        table.insert(menuBar, table.remove(menuBar, 1))
-    end
 end
 
 function displayMenu()
@@ -48,17 +47,34 @@ function displayMenu()
 end
 
 local function leftKey(intid)
-    if (intid == cpu.INT_GPIO_NEGEDGE) then
+    if intid == cpu.INT_GPIO_POSEDGE then
         table.insert(menuBar, table.remove(menuBar, 1))
         displayMenu()
     end
 end
 
 local function rightKey(intid)
-    if (intid == cpu.INT_GPIO_NEGEDGE) then
+    if intid == cpu.INT_GPIO_POSEDGE then
         table.insert(menuBar, 1, table.remove(menuBar))
         displayMenu()
     end
+end
+
+local function execute(intid)
+    if intid == cpu.INT_GPIO_POSEDGE then
+        subFunction(menuBar[1])
+    end
+end
+
+function subFunction(str)
+    local len = #menuItems[str]
+    disp.clear()
+    if len > SHOW_MAX then len = SHOW_MAX end
+    for i = 1, len do
+        disp.puttext(menuItems[str][i], 24, 16 * i - 16)
+    end
+    disp.puttext(">> ", 0, 0)
+    disp.update()
 end
 
 mono_lcd_spi_ssh1106.init()
@@ -67,4 +83,4 @@ pmd.ldoset(6, pmd.LDO_VIB)
 pins.setup(pio.P0_8)
 pins.setup(pio.P0_10, leftKey)
 pins.setup(pio.P0_11, rightKey)
-pins.setup(pio.P0_12)
+pins.setup(pio.P0_12, execute)
