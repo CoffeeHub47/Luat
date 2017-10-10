@@ -5,6 +5,8 @@ require "pins"
 
 -- 菜单按键IO列表
 local escKey, leftKey, rightKey, enterKey
+-- 菜单按键方法列表
+local escFun, leftFun, rightFun, enterFun
 -- 菜单条的菜单图标列表
 local menuBar, menuItems = config.rootMenu, config.menuItems
 --LCD分辨率的宽度和高度(单位是像素)
@@ -36,8 +38,7 @@ function appendMenuBar(fname)
     for s in f:lines() do table.insert(menuBar, s) end
     f.close()
 end
-
-function displayMenu()
+local function displayMenu()
     --清空LCD显示缓冲区
     disp.clear()
     disp.putimage("/ldata/" .. menuBar[1] .. ".bmp", 32, 0, -1)
@@ -54,36 +55,40 @@ function setup(esc, left, right, ent)
     leftKey = left or pio.P0_10
     rightKey = right or pio.P0_11
     enterKey = ent or pio.P0_12
-end
+    
+    mono_lcd_spi_ssh1106.init()
+    pmd.ldoset(6, pmd.LDO_VIB)
+    displayMenu()
 
-mono_lcd_spi_ssh1106.init()
-setup()
-displayMenu()
-pmd.ldoset(6, pmd.LDO_VIB)
-pins.setup(escKey, function(intid)
-    return
-end)
-pins.setup(leftKey, function(intid)
-    if intid == cpu.INT_GPIO_POSEDGE then
-        table.insert(menuBar, table.remove(menuBar, 1))
-        displayMenu()
+    escFun = function(intid)
+        return
     end
-end)
-pins.setup(rightKey, function(intid)
-    if intid == cpu.INT_GPIO_POSEDGE then
-        table.insert(menuBar, 1, table.remove(menuBar))
-        displayMenu()
-    end
-end)
-pins.setup(enterKey, function(intid)
-    if intid == cpu.INT_GPIO_POSEDGE then
-        local len = #menuItems[menuBar[1]]
-        disp.clear()
-        if len > SHOW_MAX then len = SHOW_MAX end
-        for i = 1, len do
-            disp.puttext(menuItems[menuBar[1]][i], 24, 16 * i - 16)
+    leftFun = function(intid)
+        if intid == cpu.INT_GPIO_POSEDGE then
+            table.insert(menuBar, table.remove(menuBar, 1))
+            displayMenu()
         end
-        disp.puttext(">> ", 0, 0)
-        disp.update()
     end
-end)
+    rightFun = function(intid)
+        if intid == cpu.INT_GPIO_POSEDGE then
+            table.insert(menuBar, 1, table.remove(menuBar))
+            displayMenu()
+        end
+    end
+    enterFun = function(intid)
+        if intid == cpu.INT_GPIO_POSEDGE then
+            local len = #menuItems[menuBar[1]]
+            disp.clear()
+            if len > SHOW_MAX then len = SHOW_MAX end
+            for i = 1, len do
+                disp.puttext(menuItems[menuBar[1]][i].title, 24, 16 * i - 16)
+            end
+            disp.puttext(">> ", 0, 0)
+            disp.update()
+        end
+    end
+    pins.setup(escKey, escFun)
+    pins.setup(leftKey, leftFun)
+    pins.setup(rightKey, rightFun)
+    pins.setup(enterKey, enterFun)
+end

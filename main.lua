@@ -28,6 +28,7 @@ require "testTask"
 require "testSocket"
 -- 测试LCD任务
 require "testLcd"
-
+testLcd.setup()
+-- 启动系统框架
 sys.init(0, 0)
 sys.run()
