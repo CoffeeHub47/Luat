@@ -2,6 +2,9 @@ module(..., package.seeall)
 require "mono_lcd_spi_ssh1106"
 require "config"
 require "pins"
+
+-- 菜单按键IO列表
+local escKey, leftKey, rightKey, enterKey
 -- 菜单条的菜单图标列表
 local menuBar, menuItems = config.rootMenu, config.menuItems
 --LCD分辨率的宽度和高度(单位是像素)
@@ -46,41 +49,41 @@ function displayMenu()
     disp.update()
 end
 
-local function leftKey(intid)
+function setup(esc, left, right, ent)
+    escKey = esc or pio.P0_8
+    leftKey = left or pio.P0_10
+    rightKey = right or pio.P0_11
+    enterKey = ent or pio.P0_12
+end
+
+mono_lcd_spi_ssh1106.init()
+setup()
+displayMenu()
+pmd.ldoset(6, pmd.LDO_VIB)
+pins.setup(escKey, function(intid)
+    return
+end)
+pins.setup(leftKey, function(intid)
     if intid == cpu.INT_GPIO_POSEDGE then
         table.insert(menuBar, table.remove(menuBar, 1))
         displayMenu()
     end
-end
-
-local function rightKey(intid)
+end)
+pins.setup(rightKey, function(intid)
     if intid == cpu.INT_GPIO_POSEDGE then
         table.insert(menuBar, 1, table.remove(menuBar))
         displayMenu()
     end
-end
-
-local function execute(intid)
+end)
+pins.setup(enterKey, function(intid)
     if intid == cpu.INT_GPIO_POSEDGE then
-        subFunction(menuBar[1])
+        local len = #menuItems[menuBar[1]]
+        disp.clear()
+        if len > SHOW_MAX then len = SHOW_MAX end
+        for i = 1, len do
+            disp.puttext(menuItems[menuBar[1]][i], 24, 16 * i - 16)
+        end
+        disp.puttext(">> ", 0, 0)
+        disp.update()
     end
-end
-
-function subFunction(str)
-    local len = #menuItems[str]
-    disp.clear()
-    if len > SHOW_MAX then len = SHOW_MAX end
-    for i = 1, len do
-        disp.puttext(menuItems[str][i], 24, 16 * i - 16)
-    end
-    disp.puttext(">> ", 0, 0)
-    disp.update()
-end
-
-mono_lcd_spi_ssh1106.init()
-displayMenu()
-pmd.ldoset(6, pmd.LDO_VIB)
-pins.setup(pio.P0_8)
-pins.setup(pio.P0_10, leftKey)
-pins.setup(pio.P0_11, rightKey)
-pins.setup(pio.P0_12, execute)
+end)
