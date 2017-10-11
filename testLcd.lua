@@ -24,7 +24,6 @@ function init(esc, left, right, ent)
     local rootMenu = newList(config.menuBar)
     local menuItem = newList(config.menuItem, true)
     rootMenu.append(menuItem)
-    menuItem.addSuperMenu(rootMenu)
     rootMenu.display()
     escFun, leftFun, rightFun, enterFun = rootMenu.escFun, rootMenu.leftFun, rootMenu.rightFun, rootMenu.enterFun
     setup(esc, left, right, ent)
@@ -43,17 +42,14 @@ end
 
 function newList(t, node)
     -- 根菜单条表
-    local self = {title = t, superList = {}, list = {}}
+    local self = {title = t, parent = {}, list = {}}
     -- 附加菜单列表到根菜单条
-    local function append(list)
+    self.append = function(list)
         self.list = list
+        list.parent = self
     end
-    -- 添加父级目录
-    local function addSuperMenu(list)
-        self.superList = list
-    end
-    -- 显示根菜单
-    local function display()
+    -- 显示菜单
+    self.display = function()
         disp.clear()
         if node then
             disp.puttext(self.title[1], 24, 2)
@@ -68,33 +64,29 @@ function newList(t, node)
         end
         disp.update()
     end
-    return {
-        display = display,
-        append = append,
-        addSuperMenu = addSuperMenu,
-        escFun = function(intid)
-            if intid == cpu.INT_GPIO_NEGEDGE then return end
-            if self.superList.enterFun then
-                self.superList.display()
-                escFun, leftFun, rightFun, enterFun = self.superList.escFun, self.superList.leftFun, self.superList.rightFun, self.superList.enterFun
-                setup()
-            end
-        end,
-        leftFun = function(intid)
-            if intid == cpu.INT_GPIO_NEGEDGE then return end
-            table.insert(self.title, table.remove(self.title, 1))
-            display() end,
-        rightFun = function(intid)
-            if intid == cpu.INT_GPIO_NEGEDGE then return end
-            table.insert(self.title, 1, table.remove(self.title))
-            display() end,
-        enterFun = function(intid)
-            if intid == cpu.INT_GPIO_NEGEDGE then return end
-            if self.list.enterFun then
-                self.list.display()
-                escFun, leftFun, rightFun, enterFun = self.list.escFun, self.list.leftFun, self.list.rightFun, self.list.enterFun
-                setup()
-            end
+    self.escFun = function(intid)
+        if intid == cpu.INT_GPIO_NEGEDGE then return end
+        if self.parent.enterFun then
+            self.parent.display()
+            escFun, leftFun, rightFun, enterFun = self.parent.escFun, self.parent.leftFun, self.parent.rightFun, self.parent.enterFun
+            setup()
         end
-    }
+    end
+    self.leftFun = function(intid)
+        if intid == cpu.INT_GPIO_NEGEDGE then return end
+        table.insert(self.title, table.remove(self.title, 1))
+        self.display() end
+    self.rightFun = function(intid)
+        if intid == cpu.INT_GPIO_NEGEDGE then return end
+        table.insert(self.title, 1, table.remove(self.title))
+        self.display() end
+    self.enterFun = function(intid)
+        if intid == cpu.INT_GPIO_NEGEDGE then return end
+        if self.list.enterFun then
+            self.list.display()
+            escFun, leftFun, rightFun, enterFun = self.list.escFun, self.list.leftFun, self.list.rightFun, self.list.enterFun
+            setup()
+        end
+    end
+    return self
 end
