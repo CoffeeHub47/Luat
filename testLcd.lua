@@ -45,9 +45,9 @@ function setup(esc, left, right, ent)
     mono_lcd_spi_ssh1106.init()
     pmd.ldoset(6, pmd.LDO_VIB)
     local rootMenu = newBar(config.menuBar)
-    local menuItem = newBar(config.menuItem)
+    local menuItem = newBar(config.menuItem,true)
     rootMenu.append(menuItem)
-    rootMenu.displayMenu()
+    rootMenu.display()
     escFun, leftFun, rightFun, enterFun = rootMenu.escFun, rootMenu.leftFun, rootMenu.rightFun, rootMenu.enterFun
     pins.setup(escKey, escFun)
     pins.setup(leftKey, leftFun)
@@ -55,7 +55,7 @@ function setup(esc, left, right, ent)
     pins.setup(enterKey, enterFun)
 end
 
-function newBar(t)
+function newBar(t,node)
     -- 根菜单条表
     local self = {title = t, subFun}
     -- 附加菜单列表到根菜单条
@@ -63,42 +63,45 @@ function newBar(t)
         self.subFun = fun
     end
     -- 显示根菜单
-    local function displayMenu()
+    local function display()
         disp.clear()
-        disp.putimage("/ldata/" .. self.title[1] .. ".bmp", 32, 0, -1)
-        disp.putimage("/ldata/" .. self.title[#self.title] .. "_small.bmp", 0, 12)
-        disp.putimage("/ldata/" .. self.title[2] .. "_small.bmp", 96, 12)
-        disp.puttext("..", 10, 40)
-        disp.puttext("..", 107, 40)
-        disp.update()
-    end
-    -- 显示子菜单列表
-    local function displayList()
-        disp.clear()
-        disp.puttext(self.title[1], 24, 4)
-        disp.puttext(" > " .. self.title[2], 0, 24)
-        disp.puttext(self.title[3], 24, 44)
+        if node then
+            disp.clear()
+            disp.puttext(self.title[1], 24, 2)
+            disp.puttext(" > " .. self.title[2], 0, 24)
+            disp.puttext(self.title[3], 24, 46)
+            disp.update()
+        else
+            disp.putimage("/ldata/" .. self.title[1] .. ".bmp", 32, 0, -1)
+            disp.putimage("/ldata/" .. self.title[#self.title] .. "_small.bmp", 0, 12)
+            disp.putimage("/ldata/" .. self.title[2] .. "_small.bmp", 96, 12)
+            disp.puttext("..", 10, 40)
+            disp.puttext("..", 107, 40)
+        
+        end
         disp.update()
     end
     return {
-        displayList = displayList,
-        displayMenu = displayMenu,
+        display = display,
         append = append,
         escFun = function(intid) return end,
         leftFun = function(intid)
             if intid == cpu.INT_GPIO_NEGEDGE then return end
+            print("self.title...name...", self.title[1])
             table.insert(self.title, table.remove(self.title, 1))
-            displayMenu() end,
+            display() end,
         rightFun = function(intid)
             if intid == cpu.INT_GPIO_NEGEDGE then return end
+            print("self.title...name...", self.title[1])
             table.insert(self.title, 1, table.remove(self.title))
-            displayMenu() end,
+            display() end,
         enterFun = function(initid)
             if intid == cpu.INT_GPIO_NEGEDGE then return end
-            escFun = self.subFun.escFun
-            leftFun = self.subFun.leftFun
-            rightFun = self.subFun.rightFun
-            enterFun = self.subFun.enterFun
-            self.subFun.displayList() end,
+            self.subFun.display()
+            pins.setup(escKey, self.subFun.escFun)
+            pins.setup(leftKey, self.subFun.leftFun)
+            pins.setup(rightKey, self.subFun.rightFun)
+            pins.setup(enterKey, self.subFun.enterFun)
+            end,
     }
 end
