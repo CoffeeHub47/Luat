@@ -45,7 +45,7 @@ function setup(esc, left, right, ent)
     mono_lcd_spi_ssh1106.init()
     pmd.ldoset(6, pmd.LDO_VIB)
     local rootMenu = newBar(config.menuBar)
-    local menuItem = newBar(config.menuItem,true)
+    local menuItem = newBar(config.menuItem, true)
     rootMenu.append(menuItem)
     rootMenu.display()
     escFun, leftFun, rightFun, enterFun = rootMenu.escFun, rootMenu.leftFun, rootMenu.rightFun, rootMenu.enterFun
@@ -55,12 +55,12 @@ function setup(esc, left, right, ent)
     pins.setup(enterKey, enterFun)
 end
 
-function newBar(t,node)
+function newBar(t, node)
     -- 根菜单条表
-    local self = {title = t, subFun}
+    local self = {title = t, list = {}}
     -- 附加菜单列表到根菜单条
-    local function append(fun)
-        self.subFun = fun
+    local function append(list)
+        self.list = list
     end
     -- 显示根菜单
     local function display()
@@ -87,21 +87,21 @@ function newBar(t,node)
         escFun = function(intid) return end,
         leftFun = function(intid)
             if intid == cpu.INT_GPIO_NEGEDGE then return end
-            print("self.title...name...", self.title[1])
+            
             table.insert(self.title, table.remove(self.title, 1))
             display() end,
         rightFun = function(intid)
             if intid == cpu.INT_GPIO_NEGEDGE then return end
-            print("self.title...name...", self.title[1])
             table.insert(self.title, 1, table.remove(self.title))
             display() end,
         enterFun = function(initid)
             if intid == cpu.INT_GPIO_NEGEDGE then return end
-            self.subFun.display()
-            pins.setup(escKey, self.subFun.escFun)
-            pins.setup(leftKey, self.subFun.leftFun)
-            pins.setup(rightKey, self.subFun.rightFun)
-            pins.setup(enterKey, self.subFun.enterFun)
-            end,
+            pins.setup(escKey, self.list.escFun)
+            pins.setup(leftKey, self.list.leftFun)
+            pins.setup(rightKey, self.list.rightFun)
+            pins.setup(enterKey, self.list.enterFun)
+            print("self.list.title...name...", self.list.title[1])
+            self.list.display()
+        end,
     }
 end
