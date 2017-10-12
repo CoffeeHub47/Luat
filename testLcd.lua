@@ -1,46 +1,41 @@
+--- 模块功能：菜单UI
+-- @module menu
+-- @author 稀饭放姜
+-- @license MIT
+-- @copyright openLuat
+-- @release 2017.10.12 10:00
 module(..., package.seeall)
 require "mono_lcd_spi_ssh1106"
 require "config"
 require "pins"
-
 -- 菜单按键IO列表
 local escKey, leftKey, rightKey, enterKey
--- 菜单按键方法列表
-local escFun, leftFun, rightFun, enterFun
--- 菜单条的菜单图标列表
-local menuBar = config.menuBar
-
-function readMenuBar(fname)
-    local menuBar = {}
-    f = io.open("/ldata/" .. fname .. ".ini")
-    for s in f:lines() do table.insert(menuBar, s) end
-    f.close()
-    return menuBar
-end
-
+--- UI初始化方法
+-- @param esc, 返回按键PIO
+-- @param left, 移动按键PIO
+-- @param right,移动按键PIO
+-- @param ent,  确定按键PIO
+-- @return nothing
+-- @usage ui.init(pio.P0_8,pio.P0_10,pio.P0_11,pio.P0_12)
 function init(esc, left, right, ent)
+    escKey = esc or pio.P0_8
+    leftKey = left or pio.P0_10
+    rightKey = right or pio.P0_11
+    enterKey = ent or pio.P0_12
     mono_lcd_spi_ssh1106.init()
     pmd.ldoset(6, pmd.LDO_VIB)
     local rootMenu = newList(config.menuBar)
     local menuItem = newList(config.menuItem, true)
     rootMenu.append(menuItem)
     rootMenu.display()
-    escFun, leftFun, rightFun, enterFun = rootMenu.escFun, rootMenu.leftFun, rootMenu.rightFun, rootMenu.enterFun
-    setup(esc, left, right, ent)
 end
-
-function setup(esc, left, right, ent)
-    escKey = esc or pio.P0_8
-    leftKey = left or pio.P0_10
-    rightKey = right or pio.P0_11
-    enterKey = ent or pio.P0_12
-    pins.setup(escKey, escFun)
-    pins.setup(leftKey, leftFun)
-    pins.setup(rightKey, rightFun)
-    pins.setup(enterKey, enterFun)
-end
-
-function newList(t, node)
+--- 创建UI菜单列表，支持两种风格--图标列表和标题列表
+-- @param t, 用户自定义的菜单标题名称或图标的文件名的table
+-- @param style,显示风格--false为图标风格,true为标题风格
+-- @return table,返回包含标题、子菜单、父菜单、按键动作的table
+-- @usage ui.newList(menuBar)
+-- @usage ui.newList(menuItem,true)
+function newList(t, style)
     -- 根菜单条表
     local self = {title = t, parent = {}, list = {}}
     -- 附加菜单列表到根菜单条
@@ -51,7 +46,7 @@ function newList(t, node)
     -- 显示菜单
     self.display = function()
         disp.clear()
-        if node then
+        if style then
             disp.puttext(self.title[1], 24, 2)
             disp.puttext(" > " .. self.title[2], 0, 24)
             disp.puttext(self.title[3], 24, 46)
@@ -63,13 +58,15 @@ function newList(t, node)
             disp.puttext("..", 107, 40)
         end
         disp.update()
+        pins.setup(escKey, self.escFun)
+        pins.setup(leftKey, self.leftFun)
+        pins.setup(rightKey, self.rightFun)
+        pins.setup(enterKey, self.enterFun)
     end
     self.escFun = function(intid)
         if intid == cpu.INT_GPIO_NEGEDGE then return end
         if self.parent.enterFun then
             self.parent.display()
-            escFun, leftFun, rightFun, enterFun = self.parent.escFun, self.parent.leftFun, self.parent.rightFun, self.parent.enterFun
-            setup()
         end
     end
     self.leftFun = function(intid)
@@ -84,8 +81,6 @@ function newList(t, node)
         if intid == cpu.INT_GPIO_NEGEDGE then return end
         if self.list.enterFun then
             self.list.display()
-            escFun, leftFun, rightFun, enterFun = self.list.escFun, self.list.leftFun, self.list.rightFun, self.list.enterFun
-            setup()
         end
     end
     return self
