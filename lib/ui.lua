@@ -24,10 +24,11 @@ end
 --- 创建UI菜单列表，支持两种风格--图标列表和标题列表
 -- @param t, 用户自定义的菜单标题名称或图标的文件名的table
 -- @param style,显示风格--false为图标风格,true为标题风格
+-- @param ... ,可变参数，用于复盖类的按键动作方法
 -- @return table,返回包含标题、子菜单、父菜单、按键动作的table
 -- @usage ui.newList(menuBar)
 -- @usage ui.newList(menuItem,true)
-function newList(t, style)
+function newList(t, style, ...)
     -- 根菜单条表
     local self = {titles = t, parent = {}, list = {}}
     -- 附加菜单列表到根菜单条
@@ -39,12 +40,12 @@ function newList(t, style)
     self.display = function()
         disp.clear()
         if style then
-            disp.puttext(self.titles[1], 24, 2)
-            disp.puttext(" > " .. self.titles[2], 0, 24)
-            disp.puttext(self.titles[3], 24, 46)
+            disp.puttext(self.titles[#self.titles], 24, 2)
+            disp.puttext(" > " .. self.titles[1], 0, 24)
+            disp.puttext(self.titles[2], 24, 46)
         else
-            disp.putimage("/ldata/" .. self.titles[1] .. ".bmp", 32, 0, -1)
             disp.putimage("/ldata/" .. self.titles[#self.titles] .. "_small.bmp", 0, 12)
+            disp.putimage("/ldata/" .. self.titles[1] .. ".bmp", 32, 0, -1)            
             disp.putimage("/ldata/" .. self.titles[2] .. "_small.bmp", 96, 12)
             disp.puttext("..", 10, 40)
             disp.puttext("..", 107, 40)
@@ -55,19 +56,19 @@ function newList(t, style)
         pins.setup(rightKey, self.rightFun)
         pins.setup(enterKey, self.enterFun)
     end
-    self.escFun = function(intid)
+    self.escFun = arg[1] or function(intid)
         if intid == cpu.INT_GPIO_NEGEDGE then return end
         if self.parent.enterFun then self.parent.display() end
     end
-    self.leftFun = function(intid)
+    self.leftFun = arg[2] or function(intid)
         if intid == cpu.INT_GPIO_NEGEDGE then return end
         table.insert(self.titles, table.remove(self.titles, 1))
         self.display() end
-    self.rightFun = function(intid)
+    self.rightFun = arg[3] or function(intid)
         if intid == cpu.INT_GPIO_NEGEDGE then return end
         table.insert(self.titles, 1, table.remove(self.titles))
         self.display() end
-    self.enterFun = function(intid)
+    self.enterFun = arg[4] or function(intid)
         if intid == cpu.INT_GPIO_NEGEDGE then return end
         if self.list[self.titles[1]] then self.list[self.titles[1]].display() end
     end

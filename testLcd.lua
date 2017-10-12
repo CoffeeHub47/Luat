@@ -1,37 +1,40 @@
---- Ê®°ÂùóÂäüËÉΩÔºöËèúÂçïUI
--- @module menu
--- @author Á®ÄÈ•≠ÊîæÂßú
--- @license MIT
--- @copyright openLuat
--- @release 2017.10.12 10:00
-module(..., package.seeall)
 require "mono_lcd_spi_ssh1106"
 require "pins"
 require "ui"
-require "config"
 local newList = ui.newList
+
+local menuBar = {"menu", "set", "message", "alarm", "device", "help", "mange", "test", "user", }
+local menuItem = {"menu≤Àµ•2º∂1", "menu≤Àµ•2º∂2", "menu≤Àµ•2º∂3", "menu≤Àµ•2º∂4", "menu≤Àµ•2º∂5", "menu≤Àµ•2º∂6"}
+local setItem = {"set≤Àµ•2º∂1", "set≤Àµ•2º∂2", "set≤Àµ•2º∂3", "set≤Àµ•2º∂4", "set≤Àµ•2º∂5", "set≤Àµ•2º∂6"}
+local msgItem = {"msg≤Àµ•2º∂1", "msg≤Àµ•2º∂2", "msg≤Àµ•2º∂3", "msg≤Àµ•2º∂4", "msg≤Àµ•2º∂5", "msg≤Àµ•2º∂6"}
+local alarmItem = {"alarm≤Àµ•2º∂1", "alarm≤Àµ•2º∂2", "alarm≤Àµ•2º∂3", "alarm≤Àµ•2º∂4", "alarm≤Àµ•2º∂5", "alarm≤Àµ•2º∂6"}
+local deviceItem = {"device≤Àµ•2º∂1", "device≤Àµ•2º∂2", "device≤Àµ•2º∂3", "device≤Àµ•2º∂4", "device≤Àµ•2º∂5", "device≤Àµ•2º∂6"}
+local helpItem = {"help≤Àµ•2º∂1", "help≤Àµ•2º∂2", "help≤Àµ•2º∂3", "help≤Àµ•2º∂4", "help≤Àµ•2º∂5", "help≤Àµ•2º∂6"}
+local mangeItem = {"mange≤Àµ•2º∂1", "mange≤Àµ•2º∂2", "mange≤Àµ•2º∂3", "mange≤Àµ•2º∂4", "mange≤Àµ•2º∂5", "mange≤Àµ•2º∂6"}
+local testItem = {"test≤Àµ•2º∂1", "test≤Àµ•2º∂2", "test≤Àµ•2º∂3", "test≤Àµ•2º∂4", "test≤Àµ•2º∂5", "test≤Àµ•2º∂6"}
+local userItem = {"user≤Àµ•2º∂1", "user≤Àµ•2º∂2", "user≤Àµ•2º∂3", "user≤Àµ•2º∂4", "user≤Àµ•2º∂5", "user≤Àµ•2º∂6"}
+
+local rootMenu = newList(menuBar)
+local menuItem = newList(menuItem, true)
+local setItem = newList(setItem, true)
+local msgItem = newList(msgItem, true)
+local alarmItem = newList(alarmItem, true)
+local deviceItem = newList(deviceItem, true)
+local helpItem = newList(helpItem, true)
+local mangeItem = newList(mangeItem, true)
+local testItem = newList(testItem, true)
+local userItem = newList(userItem, true)
+
+rootMenu.append(menuBar[1], menuItem)
+rootMenu.append(menuBar[2], setItem)
+rootMenu.append(menuBar[3], msgItem)
+rootMenu.append(menuBar[4], alarmItem)
+rootMenu.append(menuBar[5], deviceItem)
+rootMenu.append(menuBar[6], helpItem)
+rootMenu.append(menuBar[7], mangeItem)
+rootMenu.append(menuBar[8], testItem)
+rootMenu.append(menuBar[9], userItem)
 
 mono_lcd_spi_ssh1106.init()
 ui.init()
-
-local rootMenu = newList(config.menuBar)
-local menuItem = newList(config.menuItem, true)
-local setItem = newList(config.setItem, true)
-local msgItem = newList(config.msgItem, true)
-local alarmItem = newList(config.alarmItem, true)
-local deviceItem = newList(config.deviceItem, true)
-local helpItem = newList(config.helpItem, true)
-local mangeItem = newList(config.mangeItem, true)
-local testItem = newList(config.testItem, true)
-local userItem = newList(config.userItem, true)
-
-rootMenu.append(config.menuBar[1], menuItem)
-rootMenu.append(config.menuBar[2], setItem)
-rootMenu.append(config.menuBar[3], msgItem)
-rootMenu.append(config.menuBar[4], alarmItem)
-rootMenu.append(config.menuBar[5], deviceItem)
-rootMenu.append(config.menuBar[6], helpItem)
-rootMenu.append(config.menuBar[7], mangeItem)
-rootMenu.append(config.menuBar[8], testItem)
-rootMenu.append(config.menuBar[9], userItem)
 rootMenu.display()
