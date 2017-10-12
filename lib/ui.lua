@@ -8,6 +8,20 @@ module(..., package.seeall)
 require "pins"
 -- 菜单按键IO列表
 local escKey, leftKey, rightKey, enterKey
+--LCD分辨率的宽度和高度(单位是像素)
+local WIDTH, HEIGHT, BPP = disp.getlcdinfo() or 128
+--1个ASCII字符宽度为8像素，高度为16像素；汉字宽度和高度都为16像素
+local CHAR_WIDTH = 8
+--[[
+函数名：getxpos
+功能  ：计算字符串居中显示的X坐标
+参数  ：
+str：string类型，要显示的字符串
+返回值：X坐标
+]]
+local function getxpos(str)
+    return (WIDTH - string.len(str) * CHAR_WIDTH) / 2
+end
 --- UI初始化方法
 -- @param esc, 返回按键PIO
 -- @param left, 移动按键PIO
@@ -40,12 +54,15 @@ function newList(t, style, ...)
     self.display = function()
         disp.clear()
         if style then
-            disp.puttext(self.titles[#self.titles], 24, 2)
-            disp.puttext(" > " .. self.titles[1], 0, 24)
-            disp.puttext(self.titles[2], 24, 46)
+            disp.puttext(self.titles[#self.titles], getxpos(self.titles[#self.titles]), 2)
+            disp.setcolor(0x0000)
+            disp.drawrect(0, 21, 128, 43, 0xffff)
+            disp.puttext(self.titles[1], getxpos(self.titles[1]), 24)
+            disp.setcolor(0xffff)
+            disp.puttext(self.titles[2], getxpos(self.titles[2]), 46)
         else
             disp.putimage("/ldata/" .. self.titles[#self.titles] .. "_small.bmp", 0, 12)
-            disp.putimage("/ldata/" .. self.titles[1] .. ".bmp", 32, 0, -1)            
+            disp.putimage("/ldata/" .. self.titles[1] .. ".bmp", 32, 0, -1)
             disp.putimage("/ldata/" .. self.titles[2] .. "_small.bmp", 96, 12)
             disp.puttext("..", 10, 40)
             disp.puttext("..", 107, 40)
@@ -58,15 +75,15 @@ function newList(t, style, ...)
     end
     self.escFun = arg[1] or function(intid)
         if intid == cpu.INT_GPIO_NEGEDGE then return end
-        if self.parent.enterFun then self.parent.display() end
+        if self.parent.escFun ~= nil then self.parent.display() end
     end
     self.leftFun = arg[2] or function(intid)
         if intid == cpu.INT_GPIO_NEGEDGE then return end
-        table.insert(self.titles, table.remove(self.titles, 1))
+        table.insert(self.titles, 1, table.remove(self.titles))
         self.display() end
     self.rightFun = arg[3] or function(intid)
         if intid == cpu.INT_GPIO_NEGEDGE then return end
-        table.insert(self.titles, 1, table.remove(self.titles))
+        table.insert(self.titles, table.remove(self.titles, 1))
         self.display() end
     self.enterFun = arg[4] or function(intid)
         if intid == cpu.INT_GPIO_NEGEDGE then return end
