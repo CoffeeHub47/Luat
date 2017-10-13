@@ -16,10 +16,10 @@ net.startQueryAll(8 * 1000, 600 * 1000)
 require "link"
 -- 控制台
 require "console"
--- console.setup(1, 115200)
+console.setup(1, 115200)
 -- 看门狗
 require "wdt"
-wdt.setup(pio.P0_31, pio.P0_29)
+--wdt.setup(pio.P0_31, pio.P0_29)
 -- 系統指示灯
 require "led"
 led.setup(pio.P0_28)
