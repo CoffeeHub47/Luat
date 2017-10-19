@@ -1,3 +1,9 @@
+--- AM2320 温湿度传感器驱动
+-- @module AM2320
+-- @author 稀饭放姜
+-- @license MIT
+-- @copyright openLuat.com
+-- @release 2017.10.19
 require "utils"
 module(..., package.seeall)
 local i2cid, i2cslaveaddr = 2, 0x5C
@@ -16,10 +22,6 @@ function open()
     end
 end
 
-function awake()
-    print("AM2320.AWAKE IS ", i2c.read(i2cid, 0x0, 0))
-end
-
 function read()
     i2c.write(i2cid, 0x03)
     i2c.write(i2cid, pack.pack('bbb', 0x03, 0x00, 0x04))
@@ -28,10 +30,8 @@ function read()
     if data == nil or data == "" then return end
     local _, crc = pack.unpack(data, '<H', 7)
     data = string.sub(data, 1, 6)
-    -- print("AM2320.read is data\t", utils.hexlify(data))
     if crc == crypto.crc16_modbus(data, 6) then
         local _, hum, tmp = pack.unpack(string.sub(data, 3, 6), '>hh')
-        -- print("AM2320.read is tmp,hum\t", tmp, hum)
         return tmp, hum
     end
 end
