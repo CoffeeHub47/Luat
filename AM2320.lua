@@ -1,0 +1,37 @@
+module(..., package.seeall)
+local i2cid, i2cslaveaddr = 2, 0x5C
+function open()
+    --注意：此处的i2cslaveaddr是7bit地址
+    --如果i2c外设手册中给的是8bit地址，需要把8bit地址右移1位，赋值给i2cslaveaddr变量
+    --如果i2c外设手册中给的是7bit地址，直接把7bit地址赋值给i2cslaveaddr变量即可
+    --发起一次读写操作时，启动信号后的第一个字节是命令字节
+    --命令字节的bit0表示读写位，0表示写，1表示读
+    --命令字节的bit7-bit1,7个bit表示外设地址
+    --i2c底层驱动在读操作时，用 (i2cslaveaddr << 1) | 0x01 生成命令字节
+    --i2c底层驱动在写操作时，用 (i2cslaveaddr << 1) | 0x00 生成命令字节
+    if i2c.setup(i2cid, i2c.SLOW, i2cslaveaddr) ~= i2c.SLOW then
+        print("______AM2320.init fail______")
+        return
+    end
+end
+
+function awake()
+    print("AM2320.AWAKE IS ", i2c.read(i2cid, 0x0, 0))
+end
+
+function read()
+    i2c.read(i2cid, 0x0, 1)
+    local data = i2c.read(i2cid, 0x03, 4)
+    if data == nil and data == "" then return end
+    print("AM2320.read is data \t", data)
+    local _, crc = pack.uppack(data, '<H', 7)
+    data = string.sub(data, 1, 6)
+    if crc == string.format("%04X", crypto.crc16_modbus(data, 6)) then
+        local _, tmp, hum = pack.unpack(string.sub(data, 3, 6), '>h')
+        return tmp, hum
+    end
+end
+
+function close()
+    return i2c.close(i2cid)
+end

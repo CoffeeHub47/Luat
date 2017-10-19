@@ -4,27 +4,14 @@
 -- @license MIT
 -- @copyright openLuat
 -- @release 2017.02.17
-function taskm(v1, v2)
-    local count = 0
-    log.info("taskm start", v1, v2)
+require "AM2320"
+-- local lcd = require "mono_lcd_i2c_ssh1306"
+module(..., package.seeall)
+sys.taskInit(function()
+    AM2320.open()
+    -- lcd.init()
     while true do
-        log.info("taskm delay", count)
-        sys.wait(60000)
-        count = count + 1
-        sys.publish("TEST_WAIT_UNTIL")
+        print("tastTask.AM2320 data is :\t", AM2320.read())
+        sys.wait(2000)
     end
-end
-
-function taskn(v1, v2)
-    local count = 1
-    log.info("taskn waitUntil is start ! ------------------------------")
-    sys.waitUntil("TEST_WAIT_UNTIL", 6000000)
-    while true do
-        log.info("taskn delay", count)
-        sys.wait(1000)
-        count = count + 1
-    end
-end
-
-sys.taskInit(taskm, "m", "c")
-sys.taskInit(taskn, "n", "c")
+end)
