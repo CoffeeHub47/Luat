@@ -4,7 +4,6 @@
 -- @license MIT
 -- @copyright openLuat
 -- @release 2017.02.13
---定义模块,导入依赖库
 local base = _G
 local table = require "table"
 local string = require "string"
