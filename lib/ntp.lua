@@ -7,7 +7,9 @@
 require "common"
 require "misc"
 require "socket"
-local byte sub = string.byte, string.sub
+require "utils"
+require "log"
+local sbyte, ssub = string.byte, string.sub
 module(..., package.seeall)
 -- NTP服务器域名集合
 local timeServer = {
@@ -31,28 +33,33 @@ local ntpTime = {}
 
 function timeSync()
     sys.taskInit(function()
-        local r, s, num = 0
+        sys.waitUntil("IP_STATUS_SUCCESS", 60000)
+        local num = 0
         for i = 1, #timeServer do
             local c = socket.udp()
             while true do
-                while not c:connect(timeServer[i], 123) do
+                while not c:connect(timeServer[i], "123") do
                     num = num + 1
                     sys.wait(NTP_TIMEOUT)
                     if num == NTP_RETRY then break end
                 end
                 if not c:send(common.hexstobins("E30006EC0000000000000000314E31340000000000000000000000000000000000000000000000000000000000000000")) then break end
-                r, s = c:recv()
+                sys.wait(1000)
+                local r, data = c:recv()
                 if not r then break end
-                log.info("ntp.timeSync: recv", s)
-                if string.len(s) ~= 48 then break end
-                ntpTime = os.date("*t", (byte(sub(s, 41, 41)) - 0x83) * 2 ^ 24 + (byte(sub(s, 42, 42)) - 0xAA) * 2 ^ 16 + (byte(sub(s, 43, 43)) - 0x7E) * 2 ^ 8 + (byte(sub(s, 44, 44)) - 0x80) + 1)
+                if #data ~= 48 then break end
+                ntpTime = os.date("*t", (sbyte(ssub(data, 41, 41)) - 0x83) * 2 ^ 24 + (sbyte(ssub(data, 42, 42)) - 0xAA) * 2 ^ 16 + (sbyte(ssub(data, 43, 43)) - 0x7E) * 2 ^ 8 + (sbyte(ssub(data, 44, 44)) - 0x80) + 1)
                 misc.setClock(ntpTime)
                 break
             end
             c:close()
+            sys.wait(1000)
             local date = misc.getClock()
-            if ntpTime.year == date.year and ntpTime.day == date.day and ntpTime.min == date.min then ntpTime = {} break end
-            log.info("ntp.timeSync is date:\t", date.year, "/", date.month, "/", date.day, ",", date.hour, ":", date.min, ":", date.sec)
+            if ntpTime.year == date.year and ntpTime.day == date.day and ntpTime.min == date.min then
+                ntpTime = {}
+                log.info("ntp.timeSync is date:\t", date.year .. "/" .. date.month .. "/" .. date.day, "," .. date.hour, ":" .. date.min, ":" .. date.sec)
+                break
+            end
         end
     end)
 end
