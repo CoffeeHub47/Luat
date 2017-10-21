@@ -8,7 +8,8 @@ module(..., package.seeall)
 local req = ril.request
 --sn：序列号
 --imei：IMEI
-local sn, imei
+-- calib 校准标志
+local sn, imei, calib
 
 --[[
 函数名：rsp
@@ -25,36 +26,18 @@ local function rsp(cmd, success, response, intermediate)
     --查询序列号
     if cmd == "AT+WISN?" then
         sn = intermediate
-        --如果没有成功读取过序列号，则产生一个内部消息SN_READY，表示已经读取到序列号
-        if not snrdy then sys.dispatch("SN_READY")snrdy = true end
-    --查询底层软件版本号
-    --[[elseif cmd == "AT+VER" then
-    ver = intermediate]]
     --查询IMEI
     elseif cmd == "AT+CGSN" then
         imei = intermediate
-        --如果没有成功读取过IMEI，则产生一个内部消息IMEI_READY，表示已经读取到IMEI
-        if not imeirdy then sys.dispatch("IMEI_READY")imeirdy = true end
-    --写IMEI
-    elseif smatch(cmd, "AT%+WIMEI=") then
-        if wimeicb then wimeicb(success) end
-    --写序列号
-    elseif smatch(cmd, "AT%+WISN=") then
-        if wsncb then wsncb(success) end
     --查询是否校准
     elseif cmd == "AT+ATWMFT=99" then
-        print('ATWMFT', intermediate)
+        log.info('misc.ATWMFT', intermediate)
         if intermediate == "SUCC" then
             calib = true
         else
             calib = false
         end
-    --进入或退出飞行模式
-    elseif smatch(cmd, "AT%+CFUN=[01]") then
-        --产生一个内部消息FLYMODE_IND，表示飞行模式状态发生变化
-        sys.dispatch("FLYMODE_IND", smatch(cmd, "AT%+CFUN=(%d)") == "0")
     end
-
 end
 
 --- 设置系统时间
@@ -74,11 +57,16 @@ end
 --- 获取星期
 -- @number 星期，1-7分别对应周一到周日
 -- @usage week = misc.getWeek()
-function getweek()
+function getWeek()
     local clk = os.date("*t")
     return ((clk.wday == 1) and 7 or (clk.wday - 1))
 end
-
+--- 获取校准标志
+-- @return boole,
+-- @usage calib = misc.getCalib()
+function getCalib()
+    return calib
+end
 --- 设置SN
 -- @string s,新sn的字符串
 -- @string r,设置后是否重启，参数为nil时，自动重启

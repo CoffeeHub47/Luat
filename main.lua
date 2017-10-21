@@ -6,7 +6,6 @@ VERSION = "2.0.0"
 -- 日志级别
 require "log"
 LOG_LEVEL = log.LOGLEVEL_TRACE
-
 require "sys"
 -- 加载GSM
 require "net"
@@ -17,6 +16,8 @@ require "link"
 -- 控制台
 require "console"
 console.setup(1, 115200)
+-- 系统工具
+require "misc"
 -- 看门狗
 require "wdt"
 wdt.setup(pio.P0_31, pio.P0_29)
@@ -25,7 +26,9 @@ require "led"
 led.setup(pio.P0_28)
 -- 测试任务
 require "testTask"
-require "testSocket"
+--require "testSocket"
+require "ntp"
+ntp.timeSync()
 -- 测试LCD任务
 require "testLcd"
 -- 启动系统框架
