@@ -11,7 +11,6 @@ local sys = require "sys"
 require "patch"
 local base = _G
 -- 加载常用的全局函数至本地
-local print = base.print
 local unpack = base.unpack
 local ipairs = base.ipairs
 local type = base.type
@@ -83,7 +82,6 @@ end
 function setNetLinkSta(str)
     netLinkSta = str or netLinkSta
 end
-
 --- 设置电量指示灯状态
 -- @number lev，1-4,标识电量25%-100%
 -- @return 无
@@ -91,7 +89,6 @@ end
 function setBattLevel(lev)
     blinkCount = lev or blinkCount
 end
-
 --[[
 -- 功能：按照给定的亮暗时间产生闪灯效果
 -- 参数:ledPIN-灯的引脚，light-亮灯时间ms，dark-灭灯时间ms
@@ -103,13 +100,11 @@ local function blinkPwm(ledPin, light, dark)
     ledPin(0)
     sys.wait(dark)
 end
-
 --[[
 -- 模块功能：网络指示灯任务切换
 -- 返回值：无
 ]]
 local function netLink(ledPin)
-    --while true do
     if netLinkSta == "FLYMODE" then
         ledPin(0)
     elseif netLinkSta == "NET_STATE_REGISTERED" then
@@ -119,31 +114,22 @@ local function netLink(ledPin)
     elseif netLinkSta == "SOCKET_ACTIVE" then
         blinkPwm(ledPin, 100, 100)
     end
---print("led.netlink is running!")
---end
 end
-
 --[[
 -- 电池电量显示
 -- @参数：电量指示灯的GPIO
 -- @return 无
 --]]
 local function battLevel(ledPin)
-    --while true do
-    for i = 1, blinkCount do
-        blinkPwm(ledPin, blinkLight, blinkDark, blinkDull)
-    end
+    for i = 1, blinkCount do blinkPwm(ledPin, blinkLight, blinkDark, blinkDull) end
     sys.wait(blinkDull)
---end
 end
-
 --[[
 -- 呼吸灯显示
 -- @参数：呼吸灯的GPIO
 -- @return 无
 --]]
 local function breateLed(ledPin)
-    --while true do
     if bLighting then
         for i = 1, LED_PWM - 1 do
             ledPin(0)
@@ -168,9 +154,7 @@ local function breateLed(ledPin)
         ledPin(1)
         sys.wait(700)
     end
---end
 end
-
 --[[
 -- 模块功能：LED模块的运行任务
 -- 参数：指示灯的GPIO
@@ -190,7 +174,6 @@ local function taskLed(ledPin)
         sys.wait(100)
     end
 end
-
 --- 配置指示灯的GPIO
 -- @param ledPin , 模块闪灯GPIO引脚
 -- @return 无
@@ -198,9 +181,8 @@ end
 function setup(ledPin)
     sys.taskInit(taskLed, pins.setup(ledPin or LED_PIN, 0))
 end
-
 sys.subscribe("NET_STATE_REGISTERED", function()netLinkSta = "NET_STATE_REGISTERED" end)
 sys.subscribe("IP_STATUS_SUCCESS", function()netLinkSta = "IP_STATUS_SUCCESS" end)
 sys.subscribe("SOCKET_ACTIVE", function()netLinkSta = "SOCKET_ACTIVE" end)
-sys.subscribe("NET_STATE_UNREGISTER",function()netLinkSta = "FLYMODE" end)
+sys.subscribe("NET_STATE_UNREGISTER", function()netLinkSta = "FLYMODE" end)
 sys.subscribe("FLYMODE", function()netLinkSta = "FLYMODE" end)

@@ -12,7 +12,7 @@ function open()
     --i2c底层驱动在读操作时，用 (i2cslaveaddr << 1) | 0x01 生成命令字节
     --i2c底层驱动在写操作时，用 (i2cslaveaddr << 1) | 0x00 生成命令字节
     if i2c.setup(i2cid, i2c.SLOW, i2cslaveaddr) ~= i2c.SLOW then
-        print("______AM2320.init fail______")
+        log.info("______AM2320.init fail______")
         return
     end
 end

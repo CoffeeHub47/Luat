@@ -157,7 +157,6 @@ function mt.__index:close()
     ril.request("AT+CIPCLOSE=" .. self.id)
     self.wait = "+CIPCLOSE"
     coroutine.yield()
-    print("socket.close is tag ------------")
     ril.deregurc(self.id, onSocketURC)
     table.insert(valid, self.id)
     sockets[self.id] = nil
@@ -167,9 +166,8 @@ end
 local function onResponse(cmd, success, response, intermediate)
     local prefix = string.match(cmd, "AT(%+%u+)")
     local id = string.match(cmd, "AT%+%u+=(%d)")
-    print("socket.onResponse is running ---------------",prefix)
     if not sockets[id] then
-        log.warn('socket: response on nil socket', cmd, response, sockets[id])
+        log.warn('socket: response on nil socket', cmd, response)
         return
     end
     
@@ -178,7 +176,6 @@ local function onResponse(cmd, success, response, intermediate)
             -- CIPSTART 返回OK只是表示被接受
             return
         end
-        print("socket is resue runing:\t ", prefix)
         coroutine.resume(sockets[id].co, success)
     end
 end
