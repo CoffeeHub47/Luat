@@ -33,15 +33,9 @@ local ntpTime = {}
 function timeSync()
     sys.taskInit(function()
         sys.waitUntil("IP_STATUS_SUCCESS", 60000)
-        local num = 0
         for i = 1, #timeServer do
             local c = socket.udp()
             while true do
-                -- while not c:connect(timeServer[i], "123") do
-                --     num = num + 1
-                --     sys.wait(NTP_TIMEOUT)
-                --     if num == NTP_RETRY then break end
-                -- end
                 for num = 1, NTP_RETRY do if c:connect(timeServer[i], "123") then break end sys.wait(NTP_TIMEOUT) end
                 if not c:send(common.hexstobins("E30006EC0000000000000000314E31340000000000000000000000000000000000000000000000000000000000000000")) then break end
                 local _, data = c:recv()
