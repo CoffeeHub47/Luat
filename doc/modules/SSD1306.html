@@ -42,10 +42,10 @@
   <li><a href="../modules/testSocket.html">testSocket</a></li>
   <li><a href="../modules/test.html">test</a></li>
   <li><a href="../modules/AM2320.html">AM2320</a></li>
-  <li><a href="../modules/SSD1306.html">SSD1306</a></li>
+  <li><strong>SSD1306</strong></li>
   <li><a href="../modules/SH1106.html">SH1106</a></li>
   <li><a href="../modules/audio.html">audio</a></li>
-  <li><strong>clib</strong></li>
+  <li><a href="../modules/clib.html">clib</a></li>
   <li><a href="../modules/console.html">console</a></li>
   <li><a href="../modules/log.html">log</a></li>
   <li><a href="../modules/led.html">led</a></li>
@@ -74,25 +74,33 @@
 
 <div id="content">
 
-<h1>Module <code>clib</code></h1>
-<p>模块功能 完善luat的c库接口</p>
+<h1>Module <code>SSD1306</code></h1>
+<p>模块功能：SSD1306驱动</p>
 <p>
 
 </p>
     <h3>Info:</h3>
     <ul>
-        <li><strong>Copyright</strong>: openLuat.com</li>
-        <li><strong>Release</strong>: 2017.9.20</li>
+        <li><strong>Copyright</strong>: openLuat</li>
+        <li><strong>Release</strong>: 2017.10.17</li>
         <li><strong>License</strong>: MIT</li>
-        <li><strong>Author</strong>: 小强</li>
+        <li><strong>Author</strong>: 稀饭放姜</li>
     </ul>
 
 
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#uart.on">uart.on (id, event, callback)</a></td>
-	<td class="summary">uart.on</td>
+	<td class="name" nowrap><a href="#setup">setup (id, addr)</a></td>
+	<td class="summary">设置I2C的物理端口和从设备地址</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#open">open ()</a></td>
+	<td class="summary">唤醒并打开对应的I2C设备</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#init">init ()</a></td>
+	<td class="summary">初始化LCD屏幕</td>
 	</tr>
 </table>
 
@@ -104,23 +112,22 @@
 
     <dl class="function">
     <dt>
-    <a name = "uart.on"></a>
-    <strong>uart.on (id, event, callback)</strong>
+    <a name = "setup"></a>
+    <strong>setup (id, addr)</strong>
     </dt>
     <dd>
-    uart.on
+    设置I2C的物理端口和从设备地址
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">id</span>
-         uart id: (uart.ATC, 1, 2)
+            <span class="types"><span class="type">number</span></span>
+        , 端口号0-2
         </li>
-        <li><span class="parameter">event</span>
-         uart event: "recieve", "sent"
-        </li>
-        <li><span class="parameter">callback</span>
-         uart event callback function
+        <li><span class="parameter">addr</span>
+            <span class="types"><span class="type">number</span></span>
+        ,从设备地址16进制,如0x3c
         </li>
     </ul>
 
@@ -134,7 +141,53 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">uart.on()</pre>
+        <pre class="example">setup(<span class="number">2</span>,<span class="number">0x3c</span>)</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "open"></a>
+    <strong>open ()</strong>
+    </dt>
+    <dd>
+    唤醒并打开对应的I2C设备
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        无
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">open()</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "init"></a>
+    <strong>init ()</strong>
+    </dt>
+    <dd>
+    初始化LCD屏幕
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        无
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">init()</pre>
     </ul>
 
 </dd>

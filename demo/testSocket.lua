@@ -1,6 +1,6 @@
 --- testSocket
 -- @module testSocket
--- @author ��?
+-- @author 小强
 -- @license MIT
 -- @copyright openLuat.com
 -- @release 2017.9.27

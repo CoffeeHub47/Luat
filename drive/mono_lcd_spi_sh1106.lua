@@ -1,5 +1,5 @@
----模块名称：SSH 1106驱动芯片命令配置
--- @module testLcd
+---模块名称：SH1106驱动芯片命令配置
+-- @module SH1106
 -- @author 稀饭放姜
 -- @license MIT
 -- @copyright openLuat

@@ -1,12 +1,12 @@
---- 模块功能：菜单演示模块
+--- MenuTitle Demo
 -- @module testLcd
--- @author 稀饭放姜
+-- @author hotdll
 -- @license MIT
 -- @copyright openLuat
 -- @release 2017.10.17
 
-require "mono_lcd_spi_ssh1106"
-mono_lcd_spi_ssh1106.init()
+require "mono_lcd_spi_sh1106"
+mono_lcd_spi_sh1106.init()
 require "pins"
 require "ui"
 local newList = ui.newList
@@ -47,5 +47,4 @@ rootMenu.append(menuBar[7], mangeItem)
 rootMenu.append(menuBar[8], testItem)
 rootMenu.append(menuBar[9], userItem)
 
-ui.init()
 rootMenu.display()

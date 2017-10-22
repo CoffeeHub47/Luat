@@ -1,4 +1,5 @@
--- @module testLcd
+--- 模块功能：SSD1306驱动
+-- @module SSD1306
 -- @author 稀饭放姜
 -- @license MIT
 -- @copyright openLuat

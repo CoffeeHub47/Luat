@@ -31,7 +31,9 @@ require "ntp"
 ntp.timeSync()
 require "audio"
 -- 测试LCD任务
---require "testLcd"
+require "ui"
+ui.init(pio.P0_8, pio.P0_10, pio.P0_11, pio.P0_12)
+require "testLcd"
 -- 启动系统框架
 sys.init(0, 0)
 sys.run()

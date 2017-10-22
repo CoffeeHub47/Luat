@@ -6,7 +6,7 @@
 -- @release 2017.02.17
 require "AM2320"
 require "audio"
--- local lcd = require "mono_lcd_i2c_ssh1306"
+-- local lcd = require "mono_lcd_i2c_ssd1306"
 module(..., package.seeall)
 sys.taskInit(function()
     AM2320.open()
