@@ -46,13 +46,13 @@
   <li><a href="../modules/testLcd.html">testLcd</a></li>
   <li><a href="../modules/audio.html">audio</a></li>
   <li><a href="../modules/clib.html">clib</a></li>
-  <li><strong>console</strong></li>
+  <li><a href="../modules/console.html">console</a></li>
   <li><a href="../modules/log.html">log</a></li>
   <li><a href="../modules/led.html">led</a></li>
   <li><a href="../modules/link.html">link</a></li>
   <li><a href="../modules/log.html">log</a></li>
   <li><a href="../modules/lib.misc.html">lib.misc</a></li>
-  <li><a href="../modules/mqtt.html">mqtt</a></li>
+  <li><strong>mqtt</strong></li>
   <li><a href="../modules/net.html">net</a></li>
   <li><a href="../modules/ntp.html">ntp</a></li>
   <li><a href="../modules/pins.html">pins</a></li>
@@ -74,25 +74,25 @@
 
 <div id="content">
 
-<h1>Module <code>console</code></h1>
-<p>模块功能 luat控制台</p>
+<h1>Module <code>mqtt</code></h1>
+<p>模块功能：MQTT-V3.1.1客户端</p>
 <p>
 
 </p>
     <h3>Info:</h3>
     <ul>
         <li><strong>Copyright</strong>: openLuat.com</li>
-        <li><strong>Release</strong>: 2017.9.15</li>
+        <li><strong>Release</strong>: 2017.10.25</li>
         <li><strong>License</strong>: MIT</li>
-        <li><strong>Author</strong>: 小强</li>
+        <li><strong>Author</strong>: 稀饭放姜 小强</li>
     </ul>
 
 
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#setup">setup (id, baudrate)</a></td>
-	<td class="summary">console.setup</td>
+	<td class="name" nowrap><a href="#create">create (clientID, prot, cleanSession)</a></td>
+	<td class="summary">创建MQTT客户端</td>
 	</tr>
 </table>
 
@@ -104,35 +104,37 @@
 
     <dl class="function">
     <dt>
-    <a name = "setup"></a>
-    <strong>setup (id, baudrate)</strong>
+    <a name = "create"></a>
+    <strong>create (clientID, prot, cleanSession)</strong>
     </dt>
     <dd>
-    console.setup
+    创建MQTT客户端
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">id</span>
-         串口id
+        <li><span class="parameter">clientID</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        , 客户端的唯一标识ID
         </li>
-        <li><span class="parameter">baudrate</span>
-         串口波特率
+        <li><span class="parameter">prot</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        ,MQTT通信协议"UDP" or "TCP"
+        </li>
+        <li><span class="parameter">cleanSession</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        ,
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-        无
+        table,返回一个类的实例
     </ol>
 
 
 
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">console.setup(<span class="number">1</span>, <span class="number">115200</span>)</pre>
-    </ul>
 
 </dd>
 </dl>

@@ -1,8 +1,24 @@
+-- @module testLcd
+-- @author 稀饭放姜
+-- @license MIT
+-- @copyright openLuat
+-- @release 2017.10.17
 module(..., package.seeall)
-
+-- I2C的物理端口号, 从设备的地址
 local i2cid, i2cslaveaddr = 2, 0x3C
+--- 设置I2C的物理端口和从设备地址
+-- @number id, 端口号0-2
+-- @number addr,从设备地址16进制,如0x3c
+-- @return 无
+-- @usage setup(2,0x3c)
+function setup(id, addr)
+    i2cid = id or 2
+    i2cslaveaddr = addr or 0x3c
+end
+--- 唤醒并打开对应的I2C设备
+-- @return 无
+-- @usage open()
 function open()
-    
     --注意：此处的i2cslaveaddr是7bit地址
     --如果i2c外设手册中给的是8bit地址，需要把8bit地址右移1位，赋值给i2cslaveaddr变量
     --如果i2c外设手册中给的是7bit地址，直接把7bit地址赋值给i2cslaveaddr变量即可
@@ -16,12 +32,14 @@ function open()
         return
     end
 end
-
+--- 初始化LCD屏幕
+-- @return 无
+-- @usage init()
 function init()
     local initcmd = {
         0xAE, --turn off oled panel
-        0x02, ---set low column address
-        0x10, ---set high column address
+        0x02, --set low column address
+        0x10, --set high column address
         0x40, --set start line address  Set Mapping RAM Display Start Line (0x00~0x3F)
         0x81, --set contrast control register
         0xCF, --et SEG Output Current Brightness

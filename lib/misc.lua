@@ -41,14 +41,14 @@ local function rsp(cmd, success, response, intermediate)
 end
 
 --- 设置系统时间
--- @table t,系统时间，格式参考：{year=2017,month=2,day=14,hour=14,min=2,sec=58}
+-- @param t,系统时间，格式参考：{year=2017,month=2,day=14,hour=14,min=2,sec=58}
 -- @return 无
 -- @usage misc.setClock({year=2017,month=2,day=14,hour=14,min=2,sec=58})
 function setClock(t)
     if t.year - 2000 > 38 then return end
     req(string.format("AT+CCLK=\"%02d/%02d/%02d,%02d:%02d:%02d+32\"", string.sub(t.year, 3, 4), t.month, t.day, t.hour, t.min, t.sec), nil, rsp)
 end
---- 获取系统时间表
+--- 获取系统时间
 -- @return table,{year=2017,month=2,day=14,hour=14,min=19,sec=23}
 -- @usage date = getClock()
 function getClock()
@@ -113,7 +113,7 @@ end
 -- @number id,number类型，PWM输出通道，仅支持0和1，0用的是uart2 tx，1用的是uart2 rx
 -- @number period,number类型:当id为0时，period表示频率，单位为Hz，取值范围为80-1625，仅支持整数,当id为1时，取值范围为0-7，仅支持整数，表示时钟周期，单位为毫秒，0-7分别对应125、250、500、1000、1500、2000、2500、3000毫秒
 -- @number level,number类型:当id为0时，level表示占空比，单位为level%，取值范围为1-100，仅支持整数,当id为1时，取值范围为1-15，仅支持整数，表示一个时钟周期内的高电平时间，单位为毫秒 1-15分别对应15.6、31.2、46.9、62.5、78.1、93.7、110、125、141、156、172、187、203、219、234毫秒
--- @ruturn 无
+-- @return 无
 function openpwm(id, period, level)
     assert(type(id) == "number" and type(period) == "number" and type(level) == "number", "openpwm type error")
     assert(id == 0 or id == 1, "openpwm id error: " .. id)

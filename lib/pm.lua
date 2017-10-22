@@ -59,6 +59,6 @@ function sleep(tag)
         end
     end
     flag = true
-    ----调用底层软件接口，真正休眠系统
+    --调用底层软件接口，真正休眠系统
     pmd.sleep(1)
 end

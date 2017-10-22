@@ -16,8 +16,10 @@ mqttc:on("publish", function(mid) print("publish success", mid)end)
 local mqtt = {}
 mqtt.__index = mqtt
 --- 创建MQTT客户端
--- @string id, 客户端的唯一标识ID
--- @string host,
+-- @string clientID, 客户端的唯一标识ID
+-- @string prot,MQTT通信协议"UDP" or "TCP"
+-- @string cleanSession,
+-- @return table,返回一个类的实例
 function create(clientID, prot, cleanSession)
     local o = {id = clientID, port = port, cs = cleanSession}
     return setmetatable(o, mqtt)

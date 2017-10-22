@@ -1,9 +1,16 @@
+--- 模块功能：菜单演示模块
+-- @module testLcd
+-- @author 稀饭放姜
+-- @license MIT
+-- @copyright openLuat
+-- @release 2017.10.17
+
 require "mono_lcd_spi_ssh1106"
 mono_lcd_spi_ssh1106.init()
 require "pins"
 require "ui"
 local newList = ui.newList
-
+module(..., package.seeall)
 local menuBar = {"menu", "set", "message", "alarm", "device", "help", "mange", "test", "user", }
 local menuItems = {"menu菜单2级1", "menu菜单2级2", "menu菜单2级3", "menu菜单2级4", "menu菜单2级5", "menu菜单2级6"}
 local setItems = {"set菜单2级1", "set菜单2级2", "set菜单2级3", "set菜单2级4", "set菜单2级5", "set菜单2级6"}
@@ -28,7 +35,7 @@ local testItem = newList(testItems, true)
 local userItem = newList(userItems, true)
 local userItem2 = newList(userItems2, true)
 
-userItem.append(userItems[1],userItem2)
+userItem.append(userItems[1], userItem2)
 
 rootMenu.append(menuBar[1], menuItem)
 rootMenu.append(menuBar[2], setItem)
