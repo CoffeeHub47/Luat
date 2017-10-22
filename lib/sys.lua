@@ -290,10 +290,12 @@ local function dispatch()
     
     for _, req in ipairs(pendingUnsubscribeRequests) do
         local id, callback = req[1], req[2]
-        if not subscribers[id] then return end
-        for i, v in ipairs(subscribers) do
-            if v == callback then
-                table.remove(subscribers[id], i)
+        if subscribers[id] then
+            for i, v in ipairs(subscribers[id]) do
+                if v == callback then
+                    table.remove(subscribers[id], i)
+                    break
+                end
             end
         end
     end
