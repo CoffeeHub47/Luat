@@ -29,6 +29,7 @@ require "testTask"
 require "testSocket"
 require "ntp"
 ntp.timeSync()
+require "audio"
 -- 测试LCD任务
 --require "testLcd"
 -- 启动系统框架
