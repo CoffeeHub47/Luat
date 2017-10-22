@@ -26,11 +26,11 @@ require "led"
 led.setup(pio.P0_28)
 -- 测试任务
 require "testTask"
---require "testSocket"
+require "testSocket"
 require "ntp"
 ntp.timeSync()
 -- 测试LCD任务
-require "testLcd"
+--require "testLcd"
 -- 启动系统框架
 sys.init(0, 0)
 sys.run()

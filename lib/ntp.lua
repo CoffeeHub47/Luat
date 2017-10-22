@@ -57,7 +57,7 @@ function timeSync()
             local date = misc.getClock()
             if ntpTime.year == date.year and ntpTime.day == date.day and ntpTime.min == date.min then
                 ntpTime = {}
-                log.info("ntp.timeSync is date:\t", date.year .. "/" .. date.month .. "/" .. date.day, "," .. date.hour, ":" .. date.min, ":" .. date.sec)
+                log.info("ntp.timeSync is date:\t", date.year .. "/" .. date.month .. "/" .. date.day .. "," .. date.hour .. ":" .. date.min .. ":" .. date.sec)
                 break
             end
         end
