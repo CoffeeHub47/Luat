@@ -4,10 +4,6 @@
 -- @license MIT
 -- @copyright openLuat
 -- @release 2017.10.17
-
-require "mono_lcd_spi_sh1106"
-mono_lcd_spi_sh1106.init()
-require "pins"
 require "ui"
 local newList = ui.newList
 module(..., package.seeall)

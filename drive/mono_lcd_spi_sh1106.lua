@@ -16,7 +16,7 @@ LCD_DATA        数据
 LCD_DC          数据/命令选择
 VDDIO           电源
 LCD_RST         复位
---]]
+]]
 --- 显示屏驱动初始化
 -- @param rst, LCD复位引脚对应pio
 -- @param dc, LCD 数据和指令引脚对应pio
