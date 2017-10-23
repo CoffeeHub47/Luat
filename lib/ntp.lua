@@ -30,9 +30,11 @@ local NTP_TIMEOUT = 8000
 local NTP_RETRY = 3
 -- 网络获取的时间table
 local ntpTime = {}
+---  自动同步时间，每个NTP服务器尝试3次，超时8秒
+-- @return 无
+-- @usage ntp.timeSync()
 function timeSync()
     sys.taskInit(function()
-        sys.waitUntil("IP_STATUS_SUCCESS", 60000)
         for i = 1, #timeServer do
             local c = socket.udp()
             while true do
