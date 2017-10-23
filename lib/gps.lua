@@ -23,18 +23,17 @@ function close()
 end
 
 --- 设置GPS模块通信端口
--- @number uid,串口号
--- @number rate,串口波特率
--- @param wake，唤醒GPS模块对应的PIO
--- @param m2g，mcu发给gps信号的PIO
--- @param g2m, GSP发给MCU信号的PIO
+-- @number id,串口号
+-- @param w，唤醒GPS模块对应的PIO
+-- @param m，mcu发给gps信号的PIO
+-- @param g, GSP发给MCU信号的PIO
 -- @param vp，GPS的电源供给控制PIO
 -- @return 无
 -- @usage gps.setup(2,pio.P0_23,pio.P0_22,pio.P0_21,pio.P0_8)
-function setup(uid, wake, m2g, g2m, vp)
-    uid = 2 or uid
-    wake = pio.P0_23 or wake
-    m2g = pio.P0_22 or m2g
-    g2m = pio.P0_21 or g2m
+function setup(id, w, m, g, vp)
+    uid = id or 2
+    wake = w or pio.P0_23
+    m2g = m or pio.P0_22
+    g2m = g or pio.P0_21
     if vp then ldo = pins.setup(ldo, 0) end
 end
