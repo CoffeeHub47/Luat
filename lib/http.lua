@@ -6,7 +6,7 @@
 -- @release 2017.10.23
 require "socket"
 require "utils"
-module(..., package.seall)
+module(..., package.seeall)
 --[[错误消息预定义
 "SOCKET_SSL_ERROR"
 "SOCKET_CONN_ERROR"
