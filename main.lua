@@ -7,6 +7,7 @@ VERSION = "2.0.0"
 require "log"
 LOG_LEVEL = log.LOGLEVEL_TRACE
 require "sys"
+require "utils"
 -- 加载GSM
 require "net"
 --8秒后查询第一次csq

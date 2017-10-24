@@ -15,6 +15,7 @@ SOCKET_RECV_TIMOUT
 --]]
 local message = {
     "GET ",
+    " ",
     "head",
     " HTTP/1.1\n",
     "Accept: */*\n",
@@ -39,7 +40,7 @@ function request(put, url, data)
     -- 数据，端口,主机,
     local msg, port, host, len, sub, head, str = {}
     -- 判断SSL支持是否满足
-    local ssl, https = rtos.get_version():find("SSL"), url:find("https://")
+    local ssl, https = string.find(rtos.get_version(), "SSL"), url:find("https://")
     if ssl == nil and https then return "SOCKET_SSL_ERROR" end
     -- 对host:port整形
     if url:find("://") then url = url:sub(8) end
@@ -49,19 +50,24 @@ function request(put, url, data)
     port = str:match(":(%d+)") or 80
     host = str:match("[%w%.%-]+")
     head = url:sub(sub)
-    for k, v in pairs(data) do
-        table.insert(msg, k .. "=" .. v)
-        table.insert(msg, "&")
+    if type(data) == "table" then
+        for k, v in pairs(data) do
+            table.insert(msg, k .. "=" .. v)
+            table.insert(msg, "&")
+        end
+        table.remove(msg)
+        str = table.concat(msg)
+        len = str:utf8len()
+        str = string.urlencoded(str)
+    else
+        len = 0
+        str = ""
     end
-    table.remove(msg)
-    str = table.concat(msg)
-    len = str:utf8len()
-    str = string.urlencoded(str)
     message[1] = put
-    message[2] = head
-    message[8] = host
-    message[13] = len
-    message[15] = str
+    message[3] = head
+    message[9] = host
+    message[14] = len
+    message[16] = str
     str = table.concat(message)
     local c = socket.tcp()
     if not c:connect(host, port) then c:close() return "SOCKET_CONN_ERROR" end
