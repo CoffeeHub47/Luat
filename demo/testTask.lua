@@ -22,7 +22,8 @@ end)
 sys.taskInit(function()
     while true do
         sys.wait(20000)
-        body = http.request("GET", "download.openluat.com/9501-xingli/brdcGPD.dat_rda")
-        print(body)
+        body = http.request("GET", "download.openluat.com/9501-xingli/brdcGPD.dat_rda", 5000)
+        print("http.body is length:\t", #body)
+        print("http.body is content:\t", body)
     end
 end)

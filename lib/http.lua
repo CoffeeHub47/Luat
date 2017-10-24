@@ -23,20 +23,21 @@ local message = {
     "User-Agent: Mozilla/4.0\n",
     "Host: ",
     "wthrcdn.etouch.cn",
-    "\n\n\n",
-    "Connection: Keep-Alive\n",
+    "\n",
     "Content-Type: application/x-www-form-urlencoded\n",
-    "Content-Length:",
+    "Content-Length: ",
     "0",
-    "\nConnection:close\n",
+    "\n",
+    "Connection: close\n\n",
     ""
 }
 --- 创建HTTP客户端
 -- @string put,提交方式"GET" or "POST"
 -- @string url,HTTP请求超链接
+-- @number timeout,超时时间
 -- @string data,"POST"提交的数据表
 -- @return string ,HttpServer返回的数据
-function request(put, url, data)
+function request(put, url, timeout, data)
     -- 数据，端口,主机,
     local msg, port, host, len, sub, head, str = {}
     -- 判断SSL支持是否满足
@@ -66,13 +67,15 @@ function request(put, url, data)
     message[1] = put
     message[3] = head
     message[9] = host
-    message[14] = len
+    message[13] = len
     message[16] = str
     str = table.concat(message)
     local c = socket.tcp()
     if not c:connect(host, port) then c:close() return "SOCKET_CONN_ERROR" end
     if not c:send(str) then c:close() return "SOCKET_SEND_ERROR" end
-    local r, s = c:recv()
+    local r, s = c:recv(timeout)
+    len = string.match(s, "%w+%-%w+%:.(%d+)")
+    print("http.request recv is:\t", tonumber(len))
     c:close()
     if not r then return "SOCKET_RECV_TIMOUT" end
     return s
