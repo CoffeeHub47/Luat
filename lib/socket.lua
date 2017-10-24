@@ -128,16 +128,30 @@ function mt.__index:send(data)
     return true
 end
 
---- socket:recv
+--- socket:recv([timeout])
+-- @param timeout 可选参数，接收超时时间
 -- @return result true - 成功，false - 失败
--- @return data 如果成功的话，返回接收到的数据
+-- @return data 如果成功的话，返回接收到的数据，超时时返回错误为"timeout"
 -- @usage  c = socket.tcp(); c:connect(); result, data = c:recv()
-function mt.__index:recv()
+function mt.__index:recv(timeout)
     assert(self.co == coroutine.running(), "socket:recv: coroutine mismatch")
     
     if #self.input == 0 then
         self.wait = "+RECEIVE"
-        return coroutine.yield()
+        if timeout then
+            local timer = sys.timer_start(function()
+                coroutine.resume(self.co, false, "timeout")
+            end, timeout)
+            local r, s = coroutine.yield()
+            if r then
+                sys.timer_stop(timer)
+            end
+            return r, s
+        else
+            return coroutine.yield()
+        end
+
+
     end
     
     if self.protocol == "UDP" then
