@@ -39,7 +39,7 @@ local message = {
 -- @return string ,HttpServer返回的数据
 function request(put, url, timeout, data)
     -- 数据，端口,主机,
-    local port, host, len, sub, head, str
+    local port, host, len, sub, head, str, gzip, r, s
     -- 判断SSL支持是否满足
     local ssl, https = string.find(rtos.get_version(), "SSL"), url:find("https://")
     if ssl == nil and https then return "SOCKET_SSL_ERROR" end
@@ -56,12 +56,12 @@ function request(put, url, timeout, data)
         for k, v in pairs(data) do
             table.insert(msg, string.urlencode(k) .. "=" .. string.urlencode(v))
             table.insert(msg, "&")
+            print("http.data", msg[1])
         end
         table.remove(msg)
         str = table.concat(msg)
         len = str:utf8len()
         if put == "GET" then head = head .. "?" .. str end
-        print("http.head", head)
         str = ""
     else
         len = 0
@@ -77,10 +77,22 @@ function request(put, url, timeout, data)
     local c = socket.tcp()
     if not c:connect(host, port) then c:close() return "SOCKET_CONN_ERROR" end
     if not c:send(str) then c:close() return "SOCKET_SEND_ERROR" end
-    local r, s = c:recv(timeout)
-    len = string.match(s, "%w+%-%w+%:.(%d+)")
-    print("http.request recv is:\t", tonumber(len))
-    c:close()
+    r, s = c:recv(timeout)
     if not r then return "SOCKET_RECV_TIMOUT" end
+    len = string.match(s, "%aontent%-%aength: (%d+)")
+    gzip = string.match(s, "%aontent%-%ancoding: (%w+)")
+    log.info("http.request recv is:\t", tonumber(len), gzip)
+    while len do
+        r, s = c:recv(timeout)
+        local _, cnt = utils.hexlify(s)
+        if cnt == tonumber(len) or not r then break end
+    end
+    c:close()
+    if gzip then
+        -- local stream = zlib.inflate()
+        local pack, eof, bytes_in, bytes_out = zlib.inflate()(s)
+        log.info("http.request is pack,eof,bytes_in,bytes_out", pack, eof, bytes_in, bytes_out)
+        return pack
+    end
     return s
 end
