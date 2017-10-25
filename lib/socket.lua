@@ -139,19 +139,15 @@ function mt.__index:recv(timeout)
     if #self.input == 0 then
         self.wait = "+RECEIVE"
         if timeout then
-            local timer = sys.timer_start(function()
-                coroutine.resume(self.co, false, "timeout")
-            end, timeout)
-            local r, s = coroutine.yield()
-            if r then
-                sys.timer_stop(timer)
+            local r, s = sys.wait(timeout)
+            if r == nil then
+                return false, "timeout"
+            else
+                return r, s
             end
-            return r, s
         else
             return coroutine.yield()
         end
-    
-    
     end
     
     if self.protocol == "UDP" then
