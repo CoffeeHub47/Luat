@@ -230,3 +230,8 @@ ril.regurc("+RECEIVE", function(urc, prefix)
     end
     return filter
 end)
+--- SOCKET 是否可用
+-- @return 可用true,不可用false
+function isReady()
+    return ipStatus
+end

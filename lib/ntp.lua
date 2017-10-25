@@ -36,6 +36,7 @@ local ntpTime = {}
 function timeSync()
     sys.taskInit(function()
         for i = 1, #timeServer do
+            while not socket.isReady() do sys.wait(10000) end
             local c = socket.udp()
             while true do
                 for num = 1, NTP_RETRY do if c:connect(timeServer[i], "123") then break end sys.wait(NTP_TIMEOUT) end

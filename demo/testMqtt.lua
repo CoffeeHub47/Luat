@@ -8,7 +8,7 @@
 require "mqtt"
 
 sys.taskInit(function()
-    sys.wait(5000)
+    while not socket.isReady() do sys.wait(10000) end
     local mqttc = mqtt.client(misc.getimei())
     while true do
         while not mqttc:connect("180.97.80.55", 1883) do
