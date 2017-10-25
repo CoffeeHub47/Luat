@@ -15,15 +15,17 @@ sys.taskInit(function()
     while true do
         print("tastTask.AM2320 data is :\t", AM2320.read())
         sys.wait(60000)
-        audio.chime()
+        -- audio.chime()
     end
 end)
 -- 测试HTTP任务
 sys.taskInit(function()
     while true do
-        sys.wait(20000)
-        body = http.request("GET", "download.openluat.com/9501-xingli/brdcGPD.dat_rda", 5000)
+        while not socket.isReady() do sys.wait(1000) end
+        -- body = http.request("GET", "download.openluat.com/9501-xingli/brdcGPD.dat_rda", 5000)
+        body = http.request("GET", "http://wthrcdn.etouch.cn/weather_mini", 5000, {city = "beijing",})
         print("http.body is length:\t", #body)
         print("http.body is content:\t", body)
+        sys.wait(60000)
     end
 end)

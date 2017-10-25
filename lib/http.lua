@@ -17,7 +17,7 @@ local message = {
     "GET ",
     " ",
     "head",
-    " HTTP/1.1\n",
+    " HTTP/1.0\n",
     "Accept: */*\n",
     "Accept-Language: zh-CN,zh,cn\n",
     "User-Agent: Mozilla/4.0\n",
@@ -39,7 +39,7 @@ local message = {
 -- @return string ,HttpServer返回的数据
 function request(put, url, timeout, data)
     -- 数据，端口,主机,
-    local msg, port, host, len, sub, head, str = {}
+    local port, host, len, sub, head, str
     -- 判断SSL支持是否满足
     local ssl, https = string.find(rtos.get_version(), "SSL"), url:find("https://")
     if ssl == nil and https then return "SOCKET_SSL_ERROR" end
@@ -52,14 +52,17 @@ function request(put, url, timeout, data)
     host = str:match("[%w%.%-]+")
     head = url:sub(sub)
     if type(data) == "table" then
+        local msg = {}
         for k, v in pairs(data) do
-            table.insert(msg, k .. "=" .. v)
+            table.insert(msg, string.urlencode(k) .. "=" .. string.urlencode(v))
             table.insert(msg, "&")
         end
         table.remove(msg)
         str = table.concat(msg)
         len = str:utf8len()
-        str = string.urlencoded(str)
+        if put == "GET" then head = head .. "?" .. str end
+        print("http.head", head)
+        str = ""
     else
         len = 0
         str = ""
@@ -70,6 +73,7 @@ function request(put, url, timeout, data)
     message[13] = len
     message[16] = str
     str = table.concat(message)
+    log.debug("http.request host,port,head,data\t", str)
     local c = socket.tcp()
     if not c:connect(host, port) then c:close() return "SOCKET_CONN_ERROR" end
     if not c:send(str) then c:close() return "SOCKET_SEND_ERROR" end
