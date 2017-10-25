@@ -24,10 +24,7 @@ sys.taskInit(function()
     while true do
         while not socket.isReady() do sys.wait(1000) end
         -- body = http.request("GET", "download.openluat.com/9501-xingli/brdcGPD.dat_rda", 5000)
-        body = http.request("GET", "http://wthrcdn.etouch.cn/weather_mini?city=%E5%8C%97%E4%BA%AC", 5000)
-        -- body = http.request("GET", "http://wthrcdn.etouch.cn/weather_mini", 5000, {city = "北京"})
-        print("task.body is length:\t", #body)
-        print("task.body is content:\t", utils.hexlify(body))
+        local body = http.request("GET", "http://wthrcdn.etouch.cn/weather_mini?city=%E5%8C%97%E4%BA%AC", 5000)
         sys.wait(60000)
     end
 end)
