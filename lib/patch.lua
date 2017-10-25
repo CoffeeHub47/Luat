@@ -46,3 +46,14 @@ end
 
 --Lua自带的os.date接口指向自定义的safeosdate接口
 os.date = safeosdate
+
+local rawcoresume = coroutine.resume
+coroutine.resume = function(...)
+    function wrapper(...)
+        if not arg[1] then
+            log.error("coroutine.resume", arg[2])
+        end
+        return unpack(arg)
+    end
+    return wrapper(rawcoresume(unpack(arg)))
+end
