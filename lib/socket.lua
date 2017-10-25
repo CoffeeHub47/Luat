@@ -143,15 +143,13 @@ function mt.__index:recv(timeout)
                 coroutine.resume(self.co, false, "timeout")
             end, timeout)
             local r, s = coroutine.yield()
-            if r then
+            if r or s ~= "timeout" then
                 sys.timer_stop(timer)
             end
             return r, s
         else
             return coroutine.yield()
         end
-
-
     end
     
     if self.protocol == "UDP" then
