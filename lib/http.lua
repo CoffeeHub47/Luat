@@ -60,7 +60,7 @@ function request(method, url, timeout, params, data, headers)
         for k = 1, #headers do
             if headers[k]:find("urlencoded") then sub = urlencodeTab(data) end
             if headers[k]:find("json") then sub = json.encode(data) end
-            if headers[k]:find("octet-stream") then sub = tostring(data) end
+            if headers[k]:find("octet-stream") then sub = table.concat(data) end
         end
         len = string.len(sub)
         for k = 1, #headers do
@@ -79,7 +79,6 @@ function request(method, url, timeout, params, data, headers)
     response_code = s:match(" (%d+) ")
     response_message = s:match(" (%a+)")
     log.info("http.response code and message:\t", response_code, response_message)
-    if response_code ~= "200" then return response_code, response_message end
     for k, v in s:gmatch("([%a%-]+): (%C+)") do response_header[k] = v end
     gzip = s:match("%aontent%-%ancoding: (%a+)")
     local msg = {}
