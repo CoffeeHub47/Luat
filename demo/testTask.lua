@@ -23,8 +23,9 @@ end)
 sys.taskInit(function()
     while true do
         while not socket.isReady() do sys.wait(1000) end
-        local body = http.request("GET", "http://wthrcdn.etouch.cn/weather_mini?city=%E5%8C%97%E4%BA%AC", 5000)
-        log.info("testTask.http test body is length:\t", #body)
+        local code, head, body = http.request("GET", "http://wthrcdn.etouch.cn/weather_mini?city=%E5%8C%97%E4%BA%AC", 5000)
+        log.info("testTask.http test body is length:\t", code, head, string.len(body))
+        for k, v in pairs(head) do print("testTask.http head :\t", k, v) end
         sys.wait(60000)
         body = http.request("GET", "download.openluat.com/9501-xingli/brdcGPD.dat_rda", 5000)
         log.info("testTask.http test body is length:\t", #body)

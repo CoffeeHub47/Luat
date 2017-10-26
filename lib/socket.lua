@@ -4,7 +4,7 @@
 -- @license MIT
 -- @copyright openLuat.com
 -- @release 2017.9.25
-require("link")
+require "link"
 module(..., package.seeall)
 
 local valid = {"0", "1", "2", "3", "4", "5", "6", "7"}
@@ -17,10 +17,7 @@ local INDEX_MAX = 49
 local ipStatus = false
 sys.subscribe("IP_STATUS_SUCCESS", function()ipStatus = true end)
 sys.subscribe("CONNECTION_LINK_ERROR", function()ipStatus = false end)
-
---[[
-订阅rsp返回的消息处理函数
-]]
+--订阅rsp返回的消息处理函数
 local function onSocketURC(data, prefix)
     local id, result = string.match(data, "(%d), *([%u :%d]+)")
     if not sockets[id] then
@@ -41,7 +38,6 @@ local function onSocketURC(data, prefix)
         coroutine.resume(sockets[id].co, false)
     end
 end
-
 -- 创建socket函数
 local mt = {__index = {}}
 local function socket(protocol)
@@ -69,21 +65,18 @@ local function socket(protocol)
     
     return setmetatable(o, mt)
 end
-
 --- 创建基于TCP的socket对象
 -- @return 无
 -- @usage c = socket.tcp()
 function tcp()
     return socket("TCP")
 end
-
 --- 创建基于UDP的socket对象
 -- @return 无
 -- @usage c = socket.udp()
 function udp()
     return socket("UDP")
 end
-
 --- socket:connect 连接服务器
 -- @param address ip地址或者域名
 -- @param port 端口
@@ -107,7 +100,6 @@ function mt.__index:connect(address, port)
     self.wait = "+CIPSTART"
     return coroutine.yield()
 end
-
 --- socket:send
 -- @param data 数据
 -- @return result true - 成功，false - 失败
@@ -126,7 +118,6 @@ function mt.__index:send(data)
     sys.publish("IP_STATUS_SUCCESS")
     return true
 end
-
 --- socket:recv([timeout])
 -- @param timeout 可选参数，接收超时时间
 -- @return result true - 成功，false - 失败
@@ -157,7 +148,6 @@ function mt.__index:recv(timeout)
         return true, s
     end
 end
-
 --- socket:close
 -- @return 无
 -- @usage  c = socket.tcp(); c:connect(); c:send("123"); c:close()
@@ -171,7 +161,6 @@ function mt.__index:close()
     sockets[self.id] = nil
     self.id = nil
 end
-
 local function onResponse(cmd, success, response, intermediate)
     local prefix = string.match(cmd, "AT(%+%u+)")
     local id = string.match(cmd, "AT%+%u+=(%d)")
@@ -179,7 +168,6 @@ local function onResponse(cmd, success, response, intermediate)
         log.warn('socket: response on nil socket', cmd, response)
         return
     end
-    
     if sockets[id].wait == prefix then
         if prefix == "+CIPSTART" and success then
             -- CIPSTART 返回OK只是表示被接受
@@ -188,11 +176,9 @@ local function onResponse(cmd, success, response, intermediate)
         coroutine.resume(sockets[id].co, success)
     end
 end
-
 ril.regrsp("+CIPCLOSE", onResponse)
 ril.regrsp("+CIPSEND", onResponse)
 ril.regrsp("+CIPSTART", onResponse)
-
 ril.regurc("+RECEIVE", function(urc, prefix)
     local id, len = string.match(urc, ",(%d),(%d+)", string.len("+RECEIVE") + 1)
     len = tonumber(len)
@@ -227,8 +213,8 @@ ril.regurc("+RECEIVE", function(urc, prefix)
     end
     return filter
 end)
---- SOCKET 是否有可用socket
+--- SOCKET 是否有可用
 -- @return 可用true,不可用false
 function isReady()
-    return ipStatus and #valid ~= 0
+    return ipStatus
 end
