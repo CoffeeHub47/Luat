@@ -1,6 +1,6 @@
 --- 常用工具类接口
 -- @module utils
--- @author 小强
+-- @author 小强,稀饭放姜
 -- @license MIT
 -- @copyright openLuat.com
 -- @release 2017.10.19

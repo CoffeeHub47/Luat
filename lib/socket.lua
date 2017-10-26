@@ -5,7 +5,6 @@
 -- @copyright openLuat.com
 -- @release 2017.9.25
 require("link")
--- require("log")
 module(..., package.seeall)
 
 local valid = {"0", "1", "2", "3", "4", "5", "6", "7"}
@@ -228,8 +227,8 @@ ril.regurc("+RECEIVE", function(urc, prefix)
     end
     return filter
 end)
---- SOCKET 是否可用
+--- SOCKET 是否有可用socket
 -- @return 可用true,不可用false
 function isReady()
-    return ipStatus
+    return ipStatus and #valid ~= 0
 end
