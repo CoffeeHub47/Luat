@@ -34,12 +34,12 @@ end
 function request(method, url, timeout, params, data, headers)
     local response_header, response_code, response_message, response_body, host, port, path, str, sub, len = {}
     local headers = headers or {
-        "User-Agent: Mozilla/4.0",
-        "Accept: */*",
-        "Accept-Language: zh-CN,zh,cn",
-        "Content-Type: application/x-www-form-urlencoded",
-        "Content-Length: 0",
-        "Connection: close",
+        ["User-Agent"] = "Mozilla/4.0",
+        ["Accept"] = "*/*",
+        ["Accept-Language"] = "zh-CN,zh,cn",
+        ["Content-Type"] = "application/x-www-form-urlencoded",
+        ["Content-Length"] = "0",
+        ["Connection"] = "close",
     }
     -- 判断SSL支持是否满足
     local ssl, https = string.find(rtos.get_version(), "SSL"), url:find("https://")
@@ -57,18 +57,19 @@ function request(method, url, timeout, params, data, headers)
     if params ~= nil and type(params) == "table" then path = path .. "?" .. urlencodeTab(params) end
     -- 处理HTTP协议body部分的数据
     if data ~= nill and type(data) == "table" then
-        for k = 1, #headers do
-            if headers[k]:find("urlencoded") then sub = urlencodeTab(data) end
-            if headers[k]:find("json") then sub = json.encode(data) end
-            if headers[k]:find("octet-stream") then sub = table.concat(data) end
-        end
+        if headers["Content-Type"]:find("urlencoded") then sub = urlencodeTab(data) end
+        if headers["Content-Type"]:find("json") then sub = json.encode(data) end
+        if headers["Content-Type"]:find("octet%-stream") then sub = table.concat(data) end
         len = string.len(sub)
-        for k = 1, #headers do
-            if headers[k]:find("Length") then headers[k] = "Content-Length: " .. len or 0 end
-        end
+        headers["Content-Length"] = len or 0
+    end
+    -- 处理headers部分
+    local msg = {}
+    for k, v in pairs(headers) do
+        table.insert(msg, k .. ": " .. v)
     end
     -- 合并request报文
-    str = str .. "\n" .. table.concat(headers, "\n") .. "\n\n"
+    str = str .. "\n" .. table.concat(msg, "\n") .. "\n\n"
     str = method .. " " .. path .. " HTTP/1.0\nHost: " .. str .. "\n" .. sub .. "\n"
     -- 发送请求报文
     local c = socket.tcp()
@@ -81,7 +82,7 @@ function request(method, url, timeout, params, data, headers)
     log.info("http.response code and message:\t", response_code, response_message)
     for k, v in s:gmatch("([%a%-]+): (%C+)") do response_header[k] = v end
     gzip = s:match("%aontent%-%ancoding: (%a+)")
-    local msg = {}
+    msg = {}
     while true do
         r, s = c:recv(timeout)
         if not r then break end

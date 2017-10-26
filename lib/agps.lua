@@ -14,7 +14,7 @@ function setup(timeout, upTime)
         while true do
             while not socket.isReady() do sys.wait(1000) end
             local code, head, data = http.request("GET", "download.openluat.com/9501-xingli/brdcGPD.dat_rda", timeout)
-            if code == "200" then io.writefile(AlmanacData, common.binstohexs(data), "w") end
+            if code == "200" then io.writefile(AlmanacData, common.binstohexs(data)) end
             sys.wait(upTime)
         end
     end, timeout, upTime)
