@@ -1,7 +1,7 @@
 --- 模块功能：HTTP客户端
 -- @module http
 -- @author 稀饭放姜
--- @lincense MIT
+-- @license MIT
 -- @copyright OpenLuat.com
 -- @release 2017.10.23
 require "socket"
@@ -23,10 +23,10 @@ end
 --- HTTP客户端
 -- @string method,提交方式"GET" or "POST"
 -- @string url,HTTP请求超链接
+-- @number timeout,超时时间
 -- @param params,table类型，请求发送的查询字符串，通常为键值对表
 -- @param data,table类型，正文提交的body,通常为键值对、json或文件对象类似的表
 -- @param headers,table类型,HTTP headers部分
--- @number timeout,超时时间
 -- @return string,table,string,正常返回response_code, response_header, response_body
 -- @return string,string,错误返回 response_code, error_message
 -- @usage local c, h, b = http.request(url, method, headers, body)
