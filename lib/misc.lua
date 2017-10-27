@@ -1,11 +1,11 @@
---- 模块功能：配置管理--序列号、IMEI、底层软件版本号、时钟、是否校准、飞行模式、查询电池电量等功能
+--- 模块功能：配置管理-序列号、IMEI、底层软件版本号、时钟、是否校准、飞行模式、查询电池电量等功能
 -- @module misc
 -- @author 稀饭放姜
 -- @license MIT
 -- @copyright openLuat
 -- @release 2017.10.20
-module(..., package.seeall)
 local req = ril.request
+module(..., package.seeall)
 --sn：序列号
 --imei：IMEI
 -- calib 校准标志
