@@ -47,6 +47,7 @@ end
 --Lua自带的os.date接口指向自定义的safeosdate接口
 os.date = safeosdate
 
+-- 对coroutine.resume加一个修饰器用于捕获协程错误 
 local rawcoresume = coroutine.resume
 coroutine.resume = function(...)
     function wrapper(...)

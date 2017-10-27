@@ -24,9 +24,12 @@ wdt.setup(pio.P0_31, pio.P0_29)
 require "led"
 led.setup(pio.P0_28)
 -- 测试任务
-require "testTask"
+-- require "testTask"
 -- require "testMqtt"
 -- require "testSocket"
+-- 测试每分钟更新1次星历，超时30秒
+require "agps"
+agps.setup(30000, 60000)
 require "ntp"
 -- ntp.timeSync()
 require "http"

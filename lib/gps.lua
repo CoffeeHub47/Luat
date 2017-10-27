@@ -11,9 +11,14 @@ local uid, wake, m2g, g2m, ldo = 2
 --- 打开GPS模块
 -- @return string ,串口的真实波特率
 function open()
+    local wakeup = pins.setup(wake,0)
+    local wakeup = pins.setup(wake,0)
+    local wakeup = pins.setup(wake,0)
     pmd.ldoset(7, pmd.LDO_VCAM)
     if ldo then ldo(1) end
-    return uart.setup(uid, 115200, 8, uart.PAR_NONE, uart.STOP_1)
+    uart.setup(uid, 115200, 8, uart.PAR_NONE, uart.STOP_1)
+
+    return
 end
 --- 关闭GPS模块
 function close()
@@ -36,4 +41,15 @@ function setup(id, w, m, g, vp)
     m2g = m or pio.P0_22
     g2m = g or pio.P0_21
     if vp then ldo = pins.setup(ldo, 0) end
+end
+
+--cmd格式："$PGKC149,1,115200*"
+local function writecmd(cmd)
+    print("writecmd", cmd)
+    local tmp, i = 0
+    for i = 2, cmd:len() - 1 do
+        tmp = bit.bxor(tmp, sbyte(cmd, i))
+    end
+    tmp = string.upper(string.format("%02X", tmp))
+    uart.write(uid, cmd .. tmp .. "\r\n")
 end
