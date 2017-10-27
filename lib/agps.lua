@@ -15,6 +15,7 @@ function setup(timeout, upTime)
             while not socket.isReady() do sys.wait(1000) end
             local code, head, data = http.request("GET", "download.openluat.com/9501-xingli/brdcGPD.dat_rda", timeout)
             if code == "200" then io.writefile(AlmanacData, common.binstohexs(data)) end
+            log.info("agps.gpd:", common.binstohexs(data))
             sys.wait(upTime)
         end
     end, timeout, upTime)

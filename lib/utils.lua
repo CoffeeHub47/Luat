@@ -12,7 +12,7 @@ module(..., package.seeall)
 -- @return len 输入的字符串长度
 -- @usage
 -- hexlify("\1\2\3") -> "010203"
--- hexlify("123abc") -> "313233"
+-- hexlify("123abc") -> '313233616263'	6
 function hexlify(str)
     return str:gsub('.', function(c)
         return string.format("%02X", string.byte(c))
