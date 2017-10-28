@@ -32,7 +32,7 @@ require "agps"
 agps.setup(30000, 60000)
 require "gps"
 require "ntp"
--- ntp.timeSync()
+ntp.timeSync()
 require "http"
 require "audio"
 -- 测试LCD任务

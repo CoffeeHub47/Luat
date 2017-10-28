@@ -4,7 +4,6 @@
 -- @license MIT
 -- @copyright openLuat
 -- @release 2017.10.21
-require "common"
 require "misc"
 require "socket"
 require "utils"
@@ -40,7 +39,7 @@ function timeSync()
             local c = socket.udp()
             while true do
                 for num = 1, NTP_RETRY do if c:connect(timeServer[i], "123") then break end sys.wait(NTP_TIMEOUT) end
-                if not c:send(common.hexstobins("E30006EC0000000000000000314E31340000000000000000000000000000000000000000000000000000000000000000")) then break end
+                if not c:send(string.tohex("E30006EC0000000000000000314E31340000000000000000000000000000000000000000000000000000000000000000")) then break end
                 local _, data = c:recv()
                 if #data ~= 48 then break end
                 ntpTime = os.date("*t", (sbyte(ssub(data, 41, 41)) - 0x83) * 2 ^ 24 + (sbyte(ssub(data, 42, 42)) - 0xAA) * 2 ^ 16 + (sbyte(ssub(data, 43, 43)) - 0x7E) * 2 ^ 8 + (sbyte(ssub(data, 44, 44)) - 0x80) + 1)

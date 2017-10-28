@@ -26,7 +26,7 @@ end
 -- @usage audio.play_utf8_tts("欢迎光临")
 function play_utf8_tts(s)
     ril.request("AT+QTTS=1")
-    local str = common.binstohexs(common.utf8toucs2(s))
+    local str = string.fromhex(common.utf8toucs2(s))
     ril.request(string.format('AT+QTTS=2,"%s"', str))
 end
 --- 播放TTS文件
@@ -35,7 +35,7 @@ end
 -- @usage audio.play_gb2312_tts("欢迎光临")
 function play_gb2312_tts(s)
     ril.request("AT+QTTS=1")
-    local str = common.binstohexs(common.gb2312toucs2(s))
+    local str = string.fromhex(common.gb2312toucs2(s))
     ril.request(string.format('AT+QTTS=2,"%s"', str))
 end
 --- 停止播放TTS文件
