@@ -85,7 +85,7 @@ end
 
 local function unpack(s)
     if #s < 2 then return end
-    log.debug("mqtt.unpack", #s, string.fromhex(string.sub(s, 1, 50)))
+    log.debug("mqtt.unpack", #s, string.tohex(string.sub(s, 1, 50)))
 
     -- read remaining length
     local len = 0
@@ -180,7 +180,7 @@ end
 
 -- 发送mqtt数据
 function mqttc:write(data)
-    log.debug("mqtt.client:write", string.fromhex(string.sub(data, 1, 50)))
+    log.debug("mqtt.client:write", string.tohex(string.sub(data, 1, 50)))
     local r = self.io:send(data)
     if r then self.lastIOTime = os.time() end
     return r

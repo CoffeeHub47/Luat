@@ -6,31 +6,30 @@
 -- @release 2017.10.19
 module(..., package.seeall)
 
---- 返回字符串的16进制表示(将每个char用对应的ascii的hex替换)
--- @param hex 输入字符串(16进制串)
--- @return hexstring 16进制字符串
+--- 字符转16进制,如"123abc"转为"313233616263"
+-- @param str 输入字符串
+-- @return hexstring 16进制组成的串
 -- @return len 输入的字符串长度
 -- @usage
--- string.fromhex("\1\2\3") -> "010203" 3 ("\1\2\3" 等价于 "\x01\x02\x03")
--- string.fromhex("123abc") -> '313233616263' 6 ("123abc" 等价于 '\x31\x32\x33\x61\x62\x63')
-function string.fromhex(hex)
-    return hex:gsub('.', function(c)
+-- string.tohex("\1\2\3") -> "010203" 3
+-- string.tohex("123abc") -> "313233616263" 6
+function string.tohex(str)
+    return str:gsub('.', function(c)
         return string.format("%02X", string.byte(c))
     end)
 end
---- 字符串转16进制，如'313233616263'转为"123abc"
---  正常将返回转换后的字符串。函数里加入了过滤分隔符，可以过滤掉大部分分隔符（可参见正则表达式中\s和\p的范围）。
--- @string str,16进制字符串
--- @return hex,十六进制串
--- @return len,输出串的长度
+--- 16进制转字符，如"313233616263"转为"123abc", 函数里加入了过滤分隔符，可以过滤掉大部分分隔符（可参见正则表达式中\s和\p的范围）。
+-- @string hex,16进制组成的串
+-- @return charstring,字符组成的串
+-- @return len,输出字符串的长度
 -- @usage
--- string.tohex("010203")       ->  "\1\2\3" 等价于 "\x01\x02\x03"
--- string.tohex('313233616263') ->  "123abc" 等价于 '\x31\x32\x33\x61\x62\x63'
-function string.tohex(str)
+-- string.fromhex("010203")       ->  "\1\2\3"
+-- string.fromhex("313233616263:) ->  "123abc"
+function string.fromhex(hex)
     --滤掉分隔符
-    str = str:gsub("[%s%p]", ""):upper()
-    return str:gsub("%x%x", function(hex)
-        return string.char(tonumber(hex, 16))
+    local hex = hex:gsub("[%s%p]", ""):upper()
+    return hex:gsub("%x%x", function(c)
+        return string.char(tonumber(c, 16))
     end)
 end
 --- 返回utf8编码字符串的长度

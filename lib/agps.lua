@@ -19,10 +19,10 @@ function setup(timeout, upTime)
             while not socket.isReady() do sys.wait(1000) end
             code, head, data = http.request("GET", "download.openluat.com/9501-xingli/brdcGPD.dat_rda", timeout)
             if code == "200" then
-                data, len = data:fromhex()
+                data, len = data:tohex()
                 gps.open()
                 sys.wait(2000)
-                gps.update(data)
+                log.info("AGPS update-gpd status:", gps.update(data))
                 io.writefile(AlmanacData, data)
                 log.info("agps.gpd length:", len)
             end

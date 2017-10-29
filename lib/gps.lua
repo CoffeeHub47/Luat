@@ -51,16 +51,18 @@ local DATA_MODE_NMEA = "AAF00E0095000000C20100580D0A"
 local DATA_MODE_BINARY = "$PGKC149,1,115200*"
 
 function read()
+    local cache_data = ""
     while true do
         local s = uart.read(uid, "*l")
         if s ~= "" then
-            return s
+            cache_data = cache_data .. s
+            if cache_data:find("\r\n") then return cache_data end
         end
         coroutine.yield()
     end
 end
-function write(str)
-    local str = str:tohex()
+function writeData(str)
+    local str = str:fromhex()
     uart.write(uid, str)
 end
 
@@ -76,6 +78,8 @@ function writeCmd(cmd)
 end
 
 --- 更新星历到GPS模块
+-- @string 星历的十六进制字符表示字符串数据
+-- @return boole, 成功返回true，失败返回nil
 function update(data)
     local tmp = ""
     if not data then return end
@@ -88,29 +92,28 @@ function update(data)
     end
     -- 等待切换到BINARY模式
     writeCmd(DATA_MODE_BINARY)
-    while tmp ~= "AAF00C0001009500039B0D0A" do tmp = read():fromhex() end
+    -- while tmp ~= "AAF00C0001009500039B0D0A" do tmp = read():tohex() end
+    while read():tohex() ~= "AAF00C0001009500039B0D0A" do end
     -- 写入星历数据
-    for i = 1, #data, 512 do
-        local cnt = 0 -- 包序号
-        tmp = data:sub(i, i + 511)
-        if tmp:len() < 512 then tmp = tmp .. ("0"):rep(512 - tmp:len()) end
-        tmp = "0B026602" .. string.upper(string.format("%04X", cnt)) .. tmp
+    local cnt = 0 -- 包序号
+    for i = 1, #data, 1024 do
+        tmp = data:sub(i, i + 1023)
+        if tmp:len() < 1024 then tmp = tmp .. ("F"):rep(1024 - tmp:len()) end
+        tmp = "0B026602" .. string.format("%04X", cnt):upper() .. tmp
         tmp = "AAF0" .. tmp .. hexCheckSum(tmp) .. "0D0A"
-        tmp = tmp:tohex()
-        log.debug("gps.update sendata:", tmp:fromhex())
-        uart.write(uid, tmp)
-        -- write(uid, tmp)
-        while (read()):len() ~= 0 do break end
+        writeData(tmp)
+        local _, len = read():tohex()
+        print("gps.update ack1:", _, len, type(len))
+        if len ~= 12 then return end
         cnt = cnt + 1
     end
     -- 发送GPD传送结束语句
-    tmp = string.tohex("aaf00b006602ffff6f0d0a")
-    uart.write(uid, tmp)
-    while (read()):len() ~= 0 do break end
+    writeData("aaf00b006602ffff6f0d0a")
+    if read():tohex() ~= "AAF00C000300FFFF010E0D0A" then return end
     -- 切换为NMEA接收模式
-    tmp = string.tohex("aaf00e0095000000c20100580d0a")
-    uart.write(uid, tmp)
-    -- while (read()):len() ~= 0 do break end
-    while tmp ~= "AAF00C0001009500039B0D0A" do tmp = read():fromhex() end
+    writeData("aaf00e0095000000c20100580d0a")
+    for i = 1, 3 do print("gps.update ack2:", read():tohex()) end
+    if read():tohex() ~= "AAF00C0001009500039B0D0A" then return end
+    return true
 end
 setup()
