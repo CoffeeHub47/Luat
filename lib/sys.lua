@@ -55,14 +55,10 @@ function wait(ms)
     -- 参数检测，参数不能为负值
     assert(ms > 0, "The wait time cannot be negative!")
     -- 选一个未使用的定时器ID给该任务线程
-    while true do
-        -- 防止taskId超过30
-        if taskTimerId >= TASK_TIMER_ID_MAX then taskTimerId = 0 end
-        taskTimerId = taskTimerId + 1
-        taskTimerPool[coroutine.running()] = taskTimerId
-        timerPool[taskTimerId] = coroutine.running()
-        break
-    end
+    if taskTimerId >= TASK_TIMER_ID_MAX then taskTimerId = 0 end
+    taskTimerId = taskTimerId + 1
+    taskTimerPool[coroutine.running()] = taskTimerId
+    timerPool[taskTimerId] = coroutine.running()
     -- 调用core的rtos定时器
     if 1 ~= rtos.timer_start(taskTimerId, ms) then log.debug("rtos.timer_start error") return end
     -- 挂起调用的任务线程
@@ -94,7 +90,7 @@ end
 -- @return co  返回该任务的线程号
 -- @usage sys.taskInit(task1,'a','b')
 function taskInit(fun, ...)
-    co = coroutine.create(fun)
+    local co = coroutine.create(fun)
     coroutine.resume(co, unpack(arg))
     return co
 end

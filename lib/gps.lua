@@ -44,43 +44,21 @@ end
 local DATA_MODE_NMEA = "AAF00E0095000000C20100580D0A"
 -- BINARY模式
 local DATA_MODE_BINARY = "$PGKC149,1,115200*"
-function readddd()
+function read()
     local cache_data = ""
-    uart_co = coroutine.running()
+    local co = "test"
     while true do
         local s = uart.read(uid, "*l")
         if s == "" then
-            uart.on(uid, 'receive', function()coroutine.resume(uart_co) end)
-            coroutine.yield()
-            uart.on(uid, 'receive')
+            uart.on(uid, "receive", function()print("gps.update co:", co) end)
+            -- coroutine.yield()
         else
             cache_data = cache_data .. s
             if cache_data:find("\r\n") then return cache_data end
         end
     end
 end
-function read()
-    local co = coroutine.create(function()
-        local cache_data = ""
-        while true do
-            local s = uart.read(uid, "*l")
-            if s == "" then
-                coroutine.yield()
-            else
-                cache_data = cache_data .. s
-                if cache_data:find("\r\n") then
-                    uart.on(uid, 'receive')
-                    return cache_data
-                end
-            end
-        end
-    end)
-    return function()
-        uart.on(uid, 'receive', coroutine.resume(co))
-        local code, res = coroutine.resume(co)
-        return res
-    end
-end
+
 function writeData(str)
     local str = str:fromhex()
     uart.write(uid, str)

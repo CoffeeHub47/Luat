@@ -49,7 +49,7 @@ function timeSync()
             c:close()
             sys.wait(1000)
             local date = misc.getClock()
-            log.info("ntp.timeSync is date:\t", date.year .. "/" .. date.month .. "/" .. date.day .. "," .. date.hour .. ":" .. date.min .. ":" .. date.sec)
+            log.info("ntp.timeSync is date:", date.year .. "/" .. date.month .. "/" .. date.day .. "," .. date.hour .. ":" .. date.min .. ":" .. date.sec)
             if ntpTime.year == date.year and ntpTime.day == date.day and ntpTime.min == date.min then ntpTime = {} break end
         end
     end)
