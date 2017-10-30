@@ -7,7 +7,7 @@
 require "pins"
 module(..., package.seeall)
 -- 模块和单片机通信的串口号，波特率，wake，MCU_TO_GPS,GPS_TO_MCU,ldo对应的IO
-local gps_task
+-- local gps_task
 local uid, wake, m2g, g2m, ldo = 2
 --- 打开GPS模块
 -- @return string ,串口的真实波特率
@@ -16,11 +16,7 @@ function open()
     if ldo then ldo(1) end
     if wake then wake(1) end
     rtos.sys32k_clk_out(1)
-    gps_task = coroutine.running()
-    if not gps_task then log.warn("gps.open: gps must be called in coroutine!") return end
     uart.setup(uid, 115200, 8, uart.PAR_NONE, uart.STOP_1)
-    -- 串口收到数据时唤醒console协程
-    uart.on(uid, "receive", function()coroutine.resume(gps_task) end)
 end
 --- 关闭GPS模块
 function close()
@@ -54,11 +50,11 @@ function read()
     local cache_data = ""
     while true do
         local s = uart.read(uid, "*l")
-        if s ~= "" then
-            cache_data = cache_data .. s
-            if cache_data:find("\r\n") then return cache_data end
+        if s == "" then
+            coroutine.yield()
         end
-        coroutine.yield()
+        cache_data = cache_data .. s
+        if cache_data:find("\r\n") then return cache_data end
     end
 end
 function writeData(str)
@@ -81,39 +77,44 @@ end
 -- @string 星历的十六进制字符表示字符串数据
 -- @return boole, 成功返回true，失败返回nil
 function update(data)
-    local tmp = ""
     if not data then return end
     local function hexCheckSum(str)
         local sum = 0
-        for i = 1, str:len(), 2 do
+        for i = 5, str:len(), 2 do
             sum = bit.bxor(sum, tonumber(str:sub(i, i + 1), 16))
         end
         return string.upper(string.format("%02X", sum))
     end
-    -- 等待切换到BINARY模式
-    writeCmd(DATA_MODE_BINARY)
-    -- while tmp ~= "AAF00C0001009500039B0D0A" do tmp = read():tohex() end
-    while read():tohex() ~= "AAF00C0001009500039B0D0A" do end
-    -- 写入星历数据
-    local cnt = 0 -- 包序号
-    for i = 1, #data, 1024 do
-        tmp = data:sub(i, i + 1023)
-        if tmp:len() < 1024 then tmp = tmp .. ("F"):rep(1024 - tmp:len()) end
-        tmp = "0B026602" .. string.format("%04X", cnt):upper() .. tmp
-        tmp = "AAF0" .. tmp .. hexCheckSum(tmp) .. "0D0A"
-        writeData(tmp)
-        local _, len = read():tohex()
-        print("gps.update ack1:", _, len, type(len))
-        if len ~= 12 then return end
-        cnt = cnt + 1
+    local function upgrade()
+        local tmp = ""
+        -- 等待切换到BINARY模式
+        writeCmd(DATA_MODE_BINARY)
+        while tmp ~= "AAF00C0001009500039B0D0A" do tmp = read():tohex() end
+        -- while read():tohex() ~= "AAF00C0001009500039B0D0A" do end
+        -- 写入星历数据
+        local cnt = 0 -- 包序号
+        for i = 1, #data, 1024 do
+            tmp = data:sub(i, i + 1023)
+            if tmp:len() < 1024 then tmp = tmp .. ("F"):rep(1024 - tmp:len()) end
+            tmp = "AAF00B026602" .. string.format("%04X", cnt):upper() .. tmp
+            tmp = tmp .. hexCheckSum(tmp) .. "0D0A"
+            log.info("gps.update gpd_send:", tmp)
+            writeData(tmp)
+            local _, len = read():tohex()
+            log.info("gps.update send_ack:", _, len)
+            if len ~= 12 then writeData("aaf00e0095000000c20100580d0a") return end
+            cnt = cnt + 1
+        end
+        -- 发送GPD传送结束语句
+        writeData("aaf00b006602ffff6f0d0a")
+        if read():tohex() ~= "AAF00C000300FFFF010E0D0A" then writeData("aaf00e0095000000c20100580d0a") return end
+        -- 切换为NMEA接收模式
+        writeData("aaf00e0095000000c20100580d0a")
+        log.info("gps.update close_ack2:", read():tohex())
+        log.info("gps.update close_ack2:", read():tohex())
+        uart.on(uid, "receive", function() end)
+        return true
     end
-    -- 发送GPD传送结束语句
-    writeData("aaf00b006602ffff6f0d0a")
-    if read():tohex() ~= "AAF00C000300FFFF010E0D0A" then return end
-    -- 切换为NMEA接收模式
-    writeData("aaf00e0095000000c20100580d0a")
-    for i = 1, 3 do print("gps.update ack2:", read():tohex()) end
-    if read():tohex() ~= "AAF00C0001009500039B0D0A" then return end
-    return true
+    -- 串口收到数据时唤醒console协程
+    uart.on(uid, "receive", coroutine.wrap(upgrade))
 end
-setup()

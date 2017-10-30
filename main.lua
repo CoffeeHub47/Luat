@@ -27,10 +27,7 @@ led.setup(pio.P0_28)
 -- require "testTask"
 -- require "testMqtt"
 -- require "testSocket"
--- 测试每分钟更新1次星历，超时30秒
-require "agps"
-agps.setup(30000, 60000)
-require "gps"
+require "testGPS"
 require "ntp"
 ntp.timeSync()
 require "http"

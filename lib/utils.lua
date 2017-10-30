@@ -111,7 +111,7 @@ end
 -- @return string,文件的内容
 -- @usage local c = io.writefile("/ldata/call.txt","test")
 function io.writefile(path, content, mode)
-    mode = mode or "w+b"
+    local mode = mode or "w+b"
     local file = io.open(path, mode)
     if file then
         if file:write(content) == nil then return false end
