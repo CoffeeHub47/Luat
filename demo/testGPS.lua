@@ -15,7 +15,7 @@ sys.taskInit(function()
     
     while true do
         agps.refresh(30000)
-        -- log.info("AGPS update-gpd status:", gps.update(agps.getGPD()))
-        sys.wait(60000)
+        log.info("AGPS update-gpd status:", gps.update(agps.getGPD()))
+        sys.wait(20000)
     end
 end)

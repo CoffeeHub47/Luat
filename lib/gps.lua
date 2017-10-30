@@ -46,15 +46,15 @@ local DATA_MODE_NMEA = "AAF00E0095000000C20100580D0A"
 local DATA_MODE_BINARY = "$PGKC149,1,115200*"
 function read()
     local cache_data = ""
-    local co = "test"
+    local co = coroutine.running()
     while true do
         local s = uart.read(uid, "*l")
         if s == "" then
-            uart.on(uid, "receive", function()print("gps.update co:", co) end)
-            -- coroutine.yield()
+            uart.on(uid, "receive", function()print("gps.update co:", co)coroutine.resume(co) end)
+            coroutine.yield()
         else
             cache_data = cache_data .. s
-            if cache_data:find("\r\n") then return cache_data end
+            if cache_data:find("\r\n") then uart.on(uid, "receive") return cache_data end
         end
     end
 end
