@@ -8,14 +8,11 @@ require "gps"
 require "agps"
 module(..., package.seeall)
 gps.setup()
-
+gps.open()
+agps.refresh(30000)
 sys.taskInit(function()
-    gps.open()
-    sys.wait(2000)
-    
     while true do
-        agps.refresh(30000)
         log.info("AGPS update-gpd status:", gps.update(agps.getGPD()))
-        sys.wait(20000)
+        sys.wait(30000)
     end
 end)

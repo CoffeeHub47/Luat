@@ -52,9 +52,10 @@ function read()
         if s == "" then
             uart.on(uid, "receive", function()print("gps.update co:", co)coroutine.resume(co) end)
             coroutine.yield()
+            uart.on(uid, "receive")
         else
             cache_data = cache_data .. s
-            if cache_data:find("\r\n") then uart.on(uid, "receive") return cache_data end
+            if cache_data:find("\r\n") then return cache_data end
         end
     end
 end
@@ -81,6 +82,7 @@ end
 function update(data)
     local tmp = ""
     if not data then return end
+    read()
     local function hexCheckSum(str)
         local sum = 0
         for i = 5, str:len(), 2 do
@@ -91,6 +93,7 @@ function update(data)
     -- 等待切换到BINARY模式
     writeCmd(DATA_MODE_BINARY)
     while tmp ~= "AAF00C0001009500039B0D0A" do tmp = read():tohex() end
+    log.info("gps.update gpd_start:", tmp)
     -- while read():tohex() ~= "AAF00C0001009500039B0D0A" do end
     -- 写入星历数据
     local cnt = 0 -- 包序号
