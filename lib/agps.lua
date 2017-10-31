@@ -21,7 +21,7 @@ function refresh(timeout)
             local data, len = data:tohex()
             log.info("agps.gpd length,file:", len, io.writefile(GPD_FILE, data))
         end
-        sys.wait(1000)
+        -- sys.wait(1000)
     end, timeout)
 end
 --- 获取星历数据
