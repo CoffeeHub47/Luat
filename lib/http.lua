@@ -26,12 +26,14 @@ end
 -- @number timeout,超时时间
 -- @param params,table类型，请求发送的查询字符串，通常为键值对表
 -- @param data,table类型，正文提交的body,通常为键值对、json或文件对象类似的表
+-- @number ctype,Content-Type的类型(可选1,2,3),默认1:"urlencode",2:"json",3:"octet-stream"
+-- @string basic,HTTP客户端的authorization basic验证的"username:password"
 -- @param headers,table类型,HTTP headers部分
 -- @return string,table,string,正常返回response_code, response_header, response_body
 -- @return string,string,错误返回 response_code, error_message
 -- @usage local c, h, b = http.request(url, method, headers, body)
 -- @usage local r, e  = http.request("http://wrong.url/ ")
-function request(method, url, timeout, params, data, headers)
+function request(method, url, timeout, params, data, ctype, basic, headers)
     local response_header, response_code, response_message, response_body, host, port, path, str, sub, len = {}
     local headers = headers or {
         ["User-Agent"] = "Mozilla/4.0",
@@ -56,12 +58,17 @@ function request(method, url, timeout, params, data, headers)
     -- 处理查询字符串
     if params ~= nil and type(params) == "table" then path = path .. "?" .. urlencodeTab(params) end
     -- 处理HTTP协议body部分的数据
-    if data ~= nill and type(data) == "table" then
-        if headers["Content-Type"]:find("urlencoded") then sub = urlencodeTab(data) end
-        if headers["Content-Type"]:find("json") then sub = json.encode(data) end
-        if headers["Content-Type"]:find("octet%-stream") then sub = table.concat(data) end
+    if data ~= nill and type(data) == "table" or type(data) == "string" then
+        headers["Content-Type"] = Content_type[ctype]
+        if ctype == 1 then sub = urlencodeTab(data) end
+        if ctype == 2 then sub = json.encode(data) end
+        if ctype == 3 then sub = table.concat(data) end
         len = string.len(sub)
         headers["Content-Length"] = len or 0
+    end
+    -- 处理HTTP Basic Authorization 验证
+    if basic ~= nil and type(basic) == "string" then
+        headers["Authorization"] = "Basic " .. crypto.base64_encode(basic, #basic)
     end
     -- 处理headers部分
     local msg = {}

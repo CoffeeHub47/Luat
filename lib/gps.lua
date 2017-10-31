@@ -8,8 +8,13 @@ require "pins"
 module(..., package.seeall)
 -- 模块和单片机通信的串口号，波特率，wake，MCU_TO_GPS,GPS_TO_MCU,ldo对应的IO
 local uid, wake, m2g, g2m, ldo = 2
+-- NMEA模式
+local DATA_MODE_NMEA = "AAF00E0095000000C20100580D0A"
+-- BINARY模式
+local DATA_MODE_BINARY = "$PGKC149,1,115200*"
 --- 打开GPS模块
--- @return string ,串口的真实波特率
+-- @return 无
+-- @usage gps.open()
 function open()
     pmd.ldoset(7, pmd.LDO_VCAM)
     if ldo then ldo(1) end
@@ -18,13 +23,17 @@ function open()
     uart.setup(uid, 115200, 8, uart.PAR_NONE, uart.STOP_1)
 end
 --- 关闭GPS模块
+-- @return 无
+-- @usage gps.close()
 function close()
     pmd.ldoset(0, pmd.LDO_VCAM)
     if ldo then ldo(0) end
     uart.close(uid)
     rtos.sys32k_clk_out(0)
 end
--- 重启GPS模块
+--- 重启GPS模块
+-- @return 无
+-- @usage gps.restart()
 function restart()
     close()
     open()
@@ -44,17 +53,16 @@ function setup(id, w, m, g, vp)
     g2m = pins.setup(g or pio.P0_21, 0)
     if vp then ldo = pins.setup(ldo, 0) end
 end
--- NMEA模式
-local DATA_MODE_NMEA = "AAF00E0095000000C20100580D0A"
--- BINARY模式
-local DATA_MODE_BINARY = "$PGKC149,1,115200*"
+--- 阻塞模式读取串口数据，需要线程支持
+-- @return 返回以\r\n结尾的一行数据
+-- @usage local str = gps.read()
 function read()
     local cache_data = ""
     local co = coroutine.running()
     while true do
         local s = uart.read(uid, "*l")
         if s == "" then
-            uart.on(uid, "receive", function()print("gps.update co:", co)coroutine.resume(co) end)
+            uart.on(uid, "receive", function()coroutine.resume(co) end)
             coroutine.yield()
             uart.on(uid, "receive")
         else
@@ -63,13 +71,19 @@ function read()
         end
     end
 end
-
+--- GPS串口写数据操作
+-- @string str,HEX形式的字符串
+-- @return 无
+-- @usage gps.writeData(str)
 function writeData(str)
     local str = str:fromhex()
     uart.write(uid, str)
 end
 
---cmd格式："$PGKC149,1,115200*"
+--- GPS串口写命令操作
+-- @string cmd,GPS指令(cmd格式："$PGKC149,1,115200*")
+-- @return 无
+-- @usage gps.writeCmd(cmd)
 function writeCmd(cmd)
     local tmp = 0
     for i = 2, cmd:len() - 1 do
@@ -83,6 +97,7 @@ end
 --- 更新星历到GPS模块
 -- @string 星历的十六进制字符表示字符串数据
 -- @return boole, 成功返回true，失败返回nil
+-- @usage gps.update(data)
 function update(data)
     local tmp = ""
     if not data then return end

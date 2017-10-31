@@ -157,7 +157,7 @@ function mt.__index:close()
     self.wait = "+CIPCLOSE"
     coroutine.yield()
     ril.deregurc(self.id, onSocketURC)
-    table.insert(valid, self.id)
+    table.insert(valid, 1, self.id)
     sockets[self.id] = nil
     self.id = nil
 end

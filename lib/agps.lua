@@ -10,7 +10,20 @@ module(..., package.seeall)
 -- 星历数据本地文件名
 local GPD_FILE = "/GPD.txt"
 local LBS_FILE = "/LBS.txt"
-
+local LBS_HOST = "api.openluat.com/iot/get_gpss"
+local LBS_KEY = "pKb1t4TxhjQ6dIr7"
+local LBS_SECRET = "4CyaW1HIpYKhiwanhp9s1NyzSEiA7qhHneumdfgeqqxIFSNOiitgk58htZT3bVLW"
+--- 设置基站定位需要登陆的服务器，验证账号和密码
+-- @string host,LBS基站定位服务器地址
+-- @string key, HTTP Basic Authorization 认证用户名
+-- @string secret,HTTP Basic Authorization 认证密码
+-- @return 无
+-- @usage agps.LBS_Setup("api.openluat.com","user","123345")
+function LBS_Setup(host, key, secret)
+    LBS_HOST = host or LBS_HOST
+    LBS_KEY = key or LBS_KEY
+    LBS_KEY = secret or LBS_SECRET
+end
 --- 下载星历数据
 -- @number timeout,下载星历超时等待时间
 -- @return string,星历数据的HEX字符串
@@ -30,13 +43,11 @@ end
 function getGPD()
     return io.readfile(GPD_FILE) or refresh(30000)
 end
-
-
 --- 下载基站坐标
 -- @number timeout，下载基站信息超时等待时间
 -- @return string,基站坐标字符串,基站没准备好返回nil
 -- @usage agps.cellTrack()
-function cellTrack()
+function cellTrack(timeout)
     local ct, info = {}
     while not socket.isReady() do sys.wait(1000) end
     info = net.getCellInfoExt()
@@ -53,7 +64,7 @@ function cellTrack()
     end
     ct = json.encode(ct)
     -- 发送请求报文
-    local code, head, data = http.request("GET", "api.openluat.com", timeout)
+    local code, head, data = http.request("POST", LBS_HOST, timeout, nil, ct, 2, LBS_KEY .. ":" .. LBS_SECRET)
     if code == "200" then
         local data, len = data:tohex()
         log.info("agps.gpd length,file:", len, io.writefile(LBS_FILE, data))
@@ -64,5 +75,5 @@ end
 -- @return string,基站定位的坐标字符串
 -- @usage agps.getLBS()
 function getLBS()
-    return io.readfile(LBS_FILE) or cellTrack()
+    return io.readfile(LBS_FILE) or cellTrack(30000)
 end
