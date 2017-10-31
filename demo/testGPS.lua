@@ -13,9 +13,9 @@ gps.open()
 sys.taskInit(function()
     local data = agps.getGPD(30000)
     while true do
-        while not gps.update(data) do log.info("AGPS update-gpd status:", "error")sys.wait(3 * 60000) end
+        while not gps.update(data) do log.info("AGPS update-gpd status:", "restart"); gps.restart() end
         log.info("AGPS update-gpd status:", "success")
         sys.wait(3 * 60000)
-        refresh(30000)
+        agps.refresh(6 * 60 * 60000)
     end
 end)

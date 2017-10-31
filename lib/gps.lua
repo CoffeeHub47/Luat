@@ -24,7 +24,11 @@ function close()
     uart.close(uid)
     rtos.sys32k_clk_out(0)
 end
-
+-- 重启GPS模块
+function restart()
+    close()
+    open()
+end
 --- 设置GPS模块通信端口
 -- @number id,串口号
 -- @param w，唤醒GPS模块对应的PIO
