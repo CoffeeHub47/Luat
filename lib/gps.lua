@@ -108,17 +108,19 @@ function update(data)
         tmp = tmp .. hexCheckSum(tmp) .. "0D0A"
         log.info("gps.update gpd_send:", tmp)
         writeData(tmp)
-        local _, len = read():tohex()
-        log.info("gps.update send_ack:", _, len)
-        if len ~= 12 then writeData("aaf00e0095000000c20100580d0a") return end
+        for j = 1, 30 do
+            local _, len = read():tohex()
+            log.info("gps.update send_ack:", _, len)
+            if len == 12 and _:find("AFF00C0003") then break end
+            if j == 30 then writeData("aaf00e0095000000c20100580d0a") return end
+        end
         cnt = cnt + 1
     end
     -- 发送GPD传送结束语句
     writeData("aaf00b006602ffff6f0d0a")
-    if read():tohex() ~= "AAF00C000300FFFF010E0D0A" then writeData("aaf00e0095000000c20100580d0a") return end
+    while read():tohex() ~= "AAF00C000300FFFF010E0D0A" do end
     -- 切换为NMEA接收模式
     writeData("aaf00e0095000000c20100580d0a")
-    log.info("gps.update close_ack2:", read():tohex())
-    log.info("gps.update close_ack2:", read():tohex())
+    while read():tohex() ~= "AAF00C0001009500039B0D0A" do end
     return true
 end
