@@ -48,13 +48,13 @@ end
 os.date = safeosdate
 
 -- 对coroutine.resume加一个修饰器用于捕获协程错误
--- local rawcoresume = coroutine.resume
--- coroutine.resume = function(...)
---     function wrapper(...)
---         if not arg[1] then
---             log.error("coroutine.resume", arg[2])
---         end
---         return unpack(arg)
---     end
---     return wrapper(rawcoresume(unpack(arg)))
--- end
+local rawcoresume = coroutine.resume
+coroutine.resume = function(...)
+    function wrapper(...)
+        if not arg[1] then
+            log.error("coroutine.resume", arg[2])
+        end
+        return unpack(arg)
+    end
+    return wrapper(rawcoresume(unpack(arg)))
+end

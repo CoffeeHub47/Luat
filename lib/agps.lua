@@ -11,20 +11,20 @@ local GPD_FILE = "/GPD.txt"
 
 --- 下载星历数据
 -- @number timeout,下载星历超时等待时间
--- @return 无
+-- @return string,星历数据的HEX字符串
 -- @usage agps.refresh(30000)
 function refresh(timeout)
-    sys.taskInit(function(timeout)
-        while not socket.isReady() do sys.wait(1000) end
-        local code, head, data = http.request("GET", "download.openluat.com/9501-xingli/brdcGPD.dat_rda", timeout)
-        if code == "200" then
-            local data, len = data:tohex()
-            log.info("agps.gpd length,file:", len, io.writefile(GPD_FILE, data))
-        end
-        -- sys.wait(1000)
-    end, timeout)
+    while not socket.isReady() do sys.wait(1000) end
+    local code, head, data = http.request("GET", "download.openluat.com/9501-xingli/brdcGPD.dat_rda", timeout)
+    if code == "200" then
+        local data, len = data:tohex()
+        log.info("agps.gpd length,file:", len, io.writefile(GPD_FILE, data))
+        return data
+    end
 end
 --- 获取星历数据
+-- @return string,星历数据的HEX字符串
+-- @usage agps.getGPD()
 function getGPD()
-    return io.readfile(GPD_FILE)
+    return io.readfile(GPD_FILE) or refresh(30000)
 end
