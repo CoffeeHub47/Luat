@@ -62,7 +62,6 @@ function cellTrack(timeout)
         tmp.rssi = (tonumber(rssi) > 31) and 31 or tonumber(rssi)
         table.insert(ct, tmp)
     end
-    ct = json.encode(ct)
     -- 发送请求报文
     local code, head, data = http.request("POST", LBS_HOST, timeout, nil, ct, 2, LBS_KEY .. ":" .. LBS_SECRET)
     if code == "200" then
