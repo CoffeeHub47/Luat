@@ -109,9 +109,9 @@ function update(data)
         log.info("gps.update gpd_send:", tmp)
         writeData(tmp)
         for j = 1, 30 do
-            local _, len = read():tohex()
-            log.info("gps.update send_ack:", _, len)
-            if len == 12 and _:find("AFF00C0003") then break end
+            local ack, len = read():tohex()
+            log.info("gps.update send_ack:", ack, len)
+            if len == 12 or ack:find("AAF00C0003") then break end
             if j == 30 then writeData("aaf00e0095000000c20100580d0a") return end
         end
         cnt = cnt + 1
