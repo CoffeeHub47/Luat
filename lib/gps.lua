@@ -12,13 +12,13 @@ local uid, wake, m2g, g2m, ldo = 2
 local DATA_MODE_NMEA = "AAF00E0095000000C20100580D0A"
 -- BINARY模式
 local DATA_MODE_BINARY = "$PGKC149,1,115200*"
+
 --- 打开GPS模块
 -- @return 无
 -- @usage gps.open()
 function open()
     pmd.ldoset(7, pmd.LDO_VCAM)
     if ldo then ldo(1) end
-    if wake then wake(1) end
     rtos.sys32k_clk_out(1)
     uart.setup(uid, 115200, 8, uart.PAR_NONE, uart.STOP_1)
 end
@@ -32,11 +32,16 @@ function close()
     rtos.sys32k_clk_out(0)
 end
 --- 重启GPS模块
+-- @number r,重启方式-0:外部电源重置; 1:热启动; 2:温启动; 3:冷启动
 -- @return 无
 -- @usage gps.restart()
-function restart()
-    close()
-    open()
+function restart(r)
+    if r == 0 then
+        close()
+        open()
+    else
+        writeCmd("$PGKC030," .. r .. "*")
+    end
 end
 --- 设置GPS模块通信端口
 -- @number id,串口号
@@ -138,4 +143,59 @@ function update(data)
     writeData("aaf00e0095000000c20100580d0a")
     while read():tohex() ~= "AAF00C0001009500039B0D0A" do end
     return true
+end
+
+--- 设置搜星模式
+-- @number md,搜星模式(0：GPS+BD ;1：仅GPS; 2：仅BD)
+-- @return 无
+-- @usage gps.setAeriaMode(0)
+function setAerialMode(md)
+    local mode = md or 0
+    if mode == 0 then
+        writeCmd("$PGKC115,1,0,1,0*")
+    elseif mode == 1 then
+        writeCmd("$PGKC115,1,0,0,0*")
+    elseif mode == 2 then
+        writeCmd("$PGKC115,0,0,1,0*")
+    end
+end
+
+--- 秒定位命令
+-- @string 参考坐标
+-- @return 无
+-- @usage gps.fastFix(data)
+function fastFix(dat)
+    local t = os.date("!*t")
+    t = t.year .. "," .. t.month .. "," .. t.day .. "," .. t.hour .. "," .. t.min .. "," .. t.sec .. "*"
+    writeCmd("$PGKC634," .. t)
+    writeCmd("$PGKC635," .. dat.lat .. dat.lng .. 0 .. t)
+end
+
+---GPS模块的运行功耗模式
+-- @number mod,“0”，正常运行模式
+-- “1”，周期超低功耗跟踪模式
+-- “2”，周期低功耗模式
+-- “4”，直接进入超低功耗跟踪模式
+-- “8”，自动低功耗模式，可以通过串口唤醒
+-- “9”, 自动超低功耗跟踪模式，需要force on来唤醒
+-- @number rt,模式1和2的运行时间(ms),模式0的上报间隔
+-- @number st,模式1和2的睡眠时间(ms)
+-- @return 无
+-- @usage gps.runMode()
+function runMode(mod, rt, st)
+    local rt, st = rt or "", st or ""
+    if mod == 0 and rt then
+        if rt > 10000 then rt = 10000 end
+        if rt < 200 then rt = 200 end
+        writeCmd("$PGKC101," .. rt .. "*")
+    end
+    if mod == 1 or mod == 2 then
+        writeCmd("$PGKC105," .. mod .. "," .. rt .. "," .. st .. "*")
+    else
+        writeCmd("$PGKC105," .. mod .. "*")
+    end
+end
+
+function wakeup()
+    wake(1)
 end

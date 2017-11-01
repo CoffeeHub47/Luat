@@ -54,7 +54,7 @@ function switchFly(mode)
     flyMode = mode
     -- 处理飞行模式
     if mode then
-        ril.reuqest("AT+CFUN=4")
+        ril.request("AT+CFUN=4")
         publish("FLYMODE")
     -- 处理退出飞行模式
     else

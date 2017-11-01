@@ -66,8 +66,7 @@ function cellTrack(timeout)
     -- 发送请求报文
     local code, head, data = http.request("POST", LBS_URL, timeout, nil, ct, 2, LBS_KEY .. ":" .. LBS_SECRET)
     if code == "200" then
-        local data, len = data:tohex()
-        log.info("agps.gpd length,file:", len, io.writefile(LBS_FILE, data))
+        log.info("agps.lbs length,file:", len, io.writefile(LBS_FILE, data))
         return data
     end
 end
