@@ -77,7 +77,8 @@ function request(method, url, timeout, params, data, ctype, basic, headers)
     end
     -- 合并request报文
     str = str .. "\n" .. table.concat(msg, "\n") .. "\n\n"
-    str = method .. " " .. path .. " HTTP/1.0\nHost: " .. str .. "\n" .. sub .. "\n"
+    str = method .. " " .. path .. " HTTP/1.0\nHost: " .. str .. sub .. "\n"
+    log.info("http.request send:", str:tohex())
     -- 发送请求报文
     local c = socket.tcp()
     if not c:connect(host, port) then c:close() return "502", "SOCKET_CONN_ERROR" end
