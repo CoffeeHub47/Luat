@@ -10,9 +10,10 @@ module(..., package.seeall)
 -- 星历数据本地文件名
 local GPD_FILE = "/GPD.txt"
 local LBS_FILE = "/LBS.txt"
-local LBS_HOST = "api.openluat.com/iot/get_gpss"
-local LBS_KEY = "pKb1t4TxhjQ6dIr7"
-local LBS_SECRET = "4CyaW1HIpYKhiwanhp9s1NyzSEiA7qhHneumdfgeqqxIFSNOiitgk58htZT3bVLW"
+local GPD_URL = "http://download.openluat.com/9501-xingli/brdcGPD.dat_rda"
+local LBS_URL = "http://api.openluat.com/iot/cell_location"
+local LBS_KEY = "zLakaGugFktk2sgZ"
+local LBS_SECRET = "BKW3tSMv0YBqomUlqen3DjyIbg0hvuj6P3EHFeRKCBmVkVjDYy7NQcIcWw1rTd9C"
 --- 设置基站定位需要登陆的服务器，验证账号和密码
 -- @string host,LBS基站定位服务器地址
 -- @string key, HTTP Basic Authorization 认证用户名
@@ -30,7 +31,7 @@ end
 -- @usage agps.refresh(30000)
 function refresh(timeout)
     while not socket.isReady() do sys.wait(1000) end
-    local code, head, data = http.request("GET", "download.openluat.com/9501-xingli/brdcGPD.dat_rda", timeout)
+    local code, head, data = http.request("GET", GPD_URL, timeout)
     if code == "200" then
         local data, len = data:tohex()
         log.info("agps.gpd length,file:", len, io.writefile(GPD_FILE, data))
@@ -48,7 +49,7 @@ end
 -- @return string,基站坐标字符串,基站没准备好返回nil
 -- @usage agps.cellTrack()
 function cellTrack(timeout)
-    local ct, info = {}
+    local ct, info = {['cell'] = {}}
     while not socket.isReady() do sys.wait(1000) end
     info = net.getCellInfoExt()
     if info == "" then return end
@@ -59,11 +60,11 @@ function cellTrack(timeout)
         tmp.lac = tonumber(lac)
         tmp.ci = tonumber(ci)
         tmp.hex = "10"
-        tmp.rssi = (tonumber(rssi) > 31) and 31 or tonumber(rssi)
-        table.insert(ct, tmp)
+        tmp.csq = (tonumber(rssi) > 31) and 31 or tonumber(rssi)
+        table.insert(ct.cell, tmp)
     end
     -- 发送请求报文
-    local code, head, data = http.request("POST", LBS_HOST, timeout, nil, ct, 2, LBS_KEY .. ":" .. LBS_SECRET)
+    local code, head, data = http.request("POST", LBS_URL, timeout, nil, ct, 2, LBS_KEY .. ":" .. LBS_SECRET)
     if code == "200" then
         local data, len = data:tohex()
         log.info("agps.gpd length,file:", len, io.writefile(LBS_FILE, data))
