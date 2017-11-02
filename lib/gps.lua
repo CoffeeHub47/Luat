@@ -100,7 +100,7 @@ function writeCmd(cmd)
 end
 
 --- 更新星历到GPS模块
--- @string 星历的十六进制字符表示字符串数据
+-- @string data,星历的十六进制字符表示字符串数据
 -- @return boole, 成功返回true，失败返回nil
 -- @usage gps.update(data)
 function update(data)
@@ -146,29 +146,31 @@ function update(data)
 end
 
 --- 设置搜星模式
--- @number md,搜星模式(0：GPS+BD ;1：仅GPS; 2：仅BD)
+-- @number gps,GPS定位系统，1是打开，0是关闭
+-- @number glonass,俄罗斯Glonass定位系统，1是打开，0是关闭
+-- @number beidou,中国北斗定位系统，1是打开，0是关闭
+-- @number galieo，Intel 欧盟伽利略定位系统，1是打开0是关闭
 -- @return 无
 -- @usage gps.setAeriaMode(0)
-function setAerialMode(md)
-    local mode = md or 0
-    if mode == 0 then
-        writeCmd("$PGKC115,1,0,1,0*")
-    elseif mode == 1 then
-        writeCmd("$PGKC115,1,0,0,0*")
-    elseif mode == 2 then
-        writeCmd("$PGKC115,0,0,1,0*")
-    end
+function setAerialMode(gps, glonass, beidou, galieo)
+    local gps = gps or 0
+    local glonass = glonass or 0
+    local beidou = beidou or 0
+    local galieo = galieo or 0
+    if gps + glonass + beidou + galieo == 0 then gps = 1; beidou = 1 end
+    writeCmd("$PGKC115," .. gps .. "," .. glonass .. "," .. beidou .. "," .. galieo .. "*")
 end
 
 --- 秒定位命令
--- @string 参考坐标
+-- @string lat,参考坐标纬度
+-- @string lng,参考坐标经度
 -- @return 无
 -- @usage gps.fastFix(data)
-function fastFix(dat)
+function fastFix(lat, lng)
     local t = os.date("!*t")
     t = t.year .. "," .. t.month .. "," .. t.day .. "," .. t.hour .. "," .. t.min .. "," .. t.sec .. "*"
     writeCmd("$PGKC634," .. t)
-    writeCmd("$PGKC635," .. dat.lat .. dat.lng .. 0 .. t)
+    writeCmd("$PGKC635," .. lat .. lng .. 0 .. t)
 end
 
 ---GPS模块的运行功耗模式
