@@ -66,6 +66,7 @@ local function ipState(data, prefix)
         sys.timer_stop(request, 2000, "AT+CIPSTATUS")
         publish("IP_STATUS_SUCCESS")
     elseif status == "IP INITIAL" or status == "PDP DEACT" then
+        if net.FLY_STATUS then return end
         request("AT+CSTT=\"" .. apnname .. '\",\"' .. username .. '\",\"' .. password .. "\"")
         request("AT+CIICR")
     elseif status == "IP CONFIG" or status == "IP START" then

@@ -24,6 +24,8 @@ local tonumber, tostring = base.tonumber, base.tostring
 local state = "INIT"
 --SIM卡状态：true为异常，false或者nil为正常
 local simerrsta
+-- 飞行模式状态
+FLY_STATUS = false
 
 --lac：位置区ID
 --ci：小区ID
@@ -55,7 +57,7 @@ function switchFly(mode)
     -- 处理飞行模式
     if mode then
         ril.request("AT+CFUN=4")
-        publish("FLYMODE")
+        flysta = true
     -- 处理退出飞行模式
     else
         ril.request("AT+CFUN=1")
@@ -64,6 +66,7 @@ function switchFly(mode)
         cengQueryPoll()
         --复位GSM网络状态
         neturc("2", "+CREG")
+        flysta = false
     end
 end
 --注册标志参数，creg3：true为没注册，为false为注册成功
