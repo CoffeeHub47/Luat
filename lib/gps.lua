@@ -6,8 +6,10 @@
 -- @release 2017.10.23
 require "pins"
 module(..., package.seeall)
--- 模块和单片机通信的串口号，波特率，wake，MCU_TO_GPS,GPS_TO_MCU,ldo对应的IO
+-- GPS模块和单片机通信的串口号，波特率，wake，MCU_TO_GPS,GPS_TO_MCU,ldo对应的IO
 local uid, wake, m2g, g2m, ldo = 2
+-- GPS模块的工作标志,“off"：关闭，"on"：打开，"update" ：更新星历
+local GPS_STATE = "off"
 -- NMEA模式
 local DATA_MODE_NMEA = "AAF00E0095000000C20100580D0A"
 -- BINARY模式
@@ -21,15 +23,19 @@ function open()
     if ldo then ldo(1) end
     rtos.sys32k_clk_out(1)
     uart.setup(uid, 115200, 8, uart.PAR_NONE, uart.STOP_1)
+    GPS_STATE = "on"
 end
 --- 关闭GPS模块
--- @return 无
+-- @return boole,关闭成功返回true，如果正在更新星历，则返回nil
 -- @usage gps.close()
 function close()
+    if GPS_STATE == "update" then return end
     pmd.ldoset(0, pmd.LDO_VCAM)
     if ldo then ldo(0) end
     uart.close(uid)
     rtos.sys32k_clk_out(0)
+    GPS_STATE = "off"
+    return true
 end
 --- 重启GPS模块
 -- @number r,重启方式-0:外部电源重置; 1:热启动; 2:温启动; 3:冷启动
@@ -105,7 +111,8 @@ end
 -- @usage gps.update(data)
 function update(data)
     local tmp = ""
-    if not data then return end
+    if not data or GPS_STATE == "off" then return end
+    GPS_STATE = "update"
     read()
     local function hexCheckSum(str)
         local sum = 0
@@ -138,10 +145,9 @@ function update(data)
     end
     -- 发送GPD传送结束语句
     writeData("aaf00b006602ffff6f0d0a")
-    while read():tohex() ~= "AAF00C000300FFFF010E0D0A" do end
     -- 切换为NMEA接收模式
     writeData("aaf00e0095000000c20100580d0a")
-    while read():tohex() ~= "AAF00C0001009500039B0D0A" do end
+    GPS_STATE = "on"
     return true
 end
 

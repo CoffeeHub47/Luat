@@ -16,8 +16,8 @@ sys.taskInit(function()
     local function writegpd()
         local lbs = agps.getLBS()
         local data = agps.getGPD()
-        while not gps.update(data) do log.info("AGPS update-gpd status:", "restart"); gps.restart(0) end
-        log.info("AGPS update-gpd status:", "success")
+        if not gps.update(data) then log.info("AGPS update-gpd status:", "Error") end
+        log.info("AGPS update-gpd status:", "Success")
         agps.refresh(10000)
         agps.cellTrack(10000)
     end
