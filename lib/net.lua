@@ -25,7 +25,7 @@ local state = "INIT"
 --SIM卡状态：true为异常，false或者nil为正常
 local simerrsta
 -- 飞行模式状态
-FLY_STATUS = false
+flyMode = false
 
 --lac：位置区ID
 --ci：小区ID
@@ -232,8 +232,8 @@ end
 -- @return 无
 -- @usage net.switchFly(mode)
 function switchFly(mode)
-    if FLY_STATUS == mode then return end
-    FLY_STATUS = mode
+    if flyMode == mode then return end
+    flyMode = mode
     -- 处理飞行模式
     if mode then
         ril.request("AT+CFUN=4")
