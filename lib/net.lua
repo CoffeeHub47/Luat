@@ -35,26 +35,16 @@ local lac, ci, rssi = "", "", 0
 --multicellcb：获取多小区的回调函数
 local cellinfo, flyMode, multicellcb = {}
 
---ledstate：网络指示灯状态INIT,flyMode,SIMERR,IDLE,CREG,CGATT,SCK
---INIT：功能关闭状态
---FLYMODE：飞行模式
---SIMERR：未检测到SIM卡或者SIM卡锁pin码等异常
---IDLE：未注册GSM网络
---CREG：已注册GSM网络
---CGATT：已附着GPRS数据网络
---SCK：用户socket已连接上后台
---userSocketConn：用户socket是否连接上后台
-local userSocketConn, cgatt = nil
-
 --- 飞行模式开关
 -- @bool mode，true:飞行模式开，false:飞行模式关
 -- @return 无
 -- @usage net.switchFly(mode)
 function switchFly(mode)
+    if flyMode == mode then return end
     flyMode = mode
     -- 处理飞行模式
     if mode then
-        ril.reuqest("AT+CFUN=4")
+        ril.request("AT+CFUN=4")
         publish("FLYMODE")
     -- 处理退出飞行模式
     else
@@ -458,9 +448,11 @@ sys.subscribe("SIM_IND", function(para)
     --sim卡工作不正常
     if para ~= "RDY" then
         --更新GSM网络状态
-        -- state = "UNREGISTER"
+        state = "UNREGISTER"
         --产生内部消息NET_STATE_CHANGED，表示网络状态发生变化
         publish("NET_STATE_UNREGISTER")
+    else
+        state = "INIT"
     end
 end)
 
