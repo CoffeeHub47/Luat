@@ -24,20 +24,20 @@ wdt.setup(pio.P0_31, pio.P0_29)
 require "led"
 led.setup(pio.P0_28)
 -- 测试任务
--- require "testTask"
+require "testTask"
 -- require "testMqtt"
 -- require "testSocket"
-require "testGPS"
+-- require "testGPS"
 require "ntp"
 ntp.timeSync()
 require "http"
 require "audio"
 -- 测试LCD任务
-require "ui"
-ui.init(pio.P0_8, pio.P0_10, pio.P0_11, pio.P0_12)
-require "mono_lcd_spi_sh1106"
-mono_lcd_spi_sh1106.init(pio.P0_14, pio.P0_18, pio.P0_15, disp.BUS_SPI4LINE)
-require "testLcd"
+-- require "ui"
+-- ui.init(pio.P0_8, pio.P0_10, pio.P0_11, pio.P0_12)
+-- require "mono_lcd_spi_sh1106"
+-- mono_lcd_spi_sh1106.init(pio.P0_14, pio.P0_18, pio.P0_15, disp.BUS_SPI4LINE)
+-- require "testLcd"
 -- 启动系统框架
 sys.init(0, 0)
 sys.run()
