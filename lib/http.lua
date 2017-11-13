@@ -83,6 +83,7 @@ function request(method, url, timeout, params, data, ctype, basic, headers)
     local c = socket.tcp()
     if not c:connect(host, port) then c:close() return "502", "SOCKET_CONN_ERROR" end
     if not c:send(str) then c:close() return "426", "SOCKET_SEND_ERROR" end
+    msg = {}
     r, s = c:recv(timeout)
     if not r then return "503", "SOCKET_RECV_TIMOUT" end
     response_code = s:match(" (%d+) ")
@@ -90,13 +91,14 @@ function request(method, url, timeout, params, data, ctype, basic, headers)
     log.info("http.response code and message:\t", response_code, response_message)
     for k, v in s:gmatch("([%a%-]+): (%C+)") do response_header[k] = v end
     gzip = s:match("%aontent%-%ancoding: (%a+)")
-    msg = {}
     while true do
+        table.insert(msg, s)
         r, s = c:recv(timeout)
         if not r then break end
-        table.insert(msg, s)
     end
     c:close()
+    str = table.concat(msg)
+    sub, len = str:find("\r?\n\r?\n")
     if gzip then return response_code, response_header, ((zlib.inflate(table.concat(msg))):read()) end
-    return response_code, response_header, table.concat(msg)
+    return response_code, response_header, str:sub(len + 1, -1)
 end
