@@ -57,16 +57,17 @@ function wait(ms)
     -- 选一个未使用的定时器ID给该任务线程
     if taskTimerId >= TASK_TIMER_ID_MAX then taskTimerId = 0 end
     taskTimerId = taskTimerId + 1
-    taskTimerPool[coroutine.running()] = taskTimerId
-    timerPool[taskTimerId] = coroutine.running()
+    local timerid = taskTimerId
+    taskTimerPool[coroutine.running()] = timerid
+    timerPool[timerid] = coroutine.running()
     -- 调用core的rtos定时器
-    if 1 ~= rtos.timer_start(taskTimerId, ms) then log.debug("rtos.timer_start error") return end
+    if 1 ~= rtos.timer_start(timerid, ms) then log.debug("rtos.timer_start error") return end
     -- 挂起调用的任务线程
     local message, data = coroutine.yield()
     if message ~= nil then
-        rtos.timer_stop(taskTimerId)
+        rtos.timer_stop(timerid)
         taskTimerPool[coroutine.running()] = nil
-        timerPool[taskTimerId] = nil
+        timerPool[timerid] = nil
         return message, data
     end
 end
