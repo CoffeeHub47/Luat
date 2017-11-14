@@ -11,18 +11,18 @@ require "mono_lcd_i2c_ssd1306"
 module(..., package.seeall)
 
 sys.taskInit(function()
-        -- if i2c.setup(2, i2c.SLOW) ~= i2c.SLOW then
-        --     log.error("I2C.init is: ", "fail")
-        -- end
-        ccnt = 0
-        while true do
-            -- mono_lcd_i2c_ssd1306.init(2, 0x3c)
-            -- local s = AM2320.read(2, 0x5c)
-            print("tastTask.AM2320 data is :\t", ccnt)
-            ccnt = ccnt + 1
-            sys.wait(100)
-        -- audio.chime()
-        end
+    if i2c.setup(2, i2c.SLOW) ~= i2c.SLOW then
+        log.error("I2C.init is: ", "fail")
+    end
+    ccnt = 0
+    while true do
+        mono_lcd_i2c_ssd1306.init(2, 0x3c)
+        local tmp, hum = AM2320.read(2, 0x5c)
+        print("tastTask.AM2320 data is : ", tmp, hum, ccnt)
+        ccnt = ccnt + 1
+        sys.wait(100)
+    -- audio.chime()
+    end
 end)
 -- 测试HTTP任务
 sys.taskInit(function()
