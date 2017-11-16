@@ -26,7 +26,7 @@ local apnFlag = true
 -- @string pwd,  APN登陆用户密码
 function setApn(apn, user, pwd)
     apnname, username, password = apn, user or '', pwd or ''
-    apnflag = false
+    apnFlag = false
 end
 
 --- 获取APN的名称
@@ -58,7 +58,7 @@ sys.subscribe("IMSI_READY", function()
 end)
 
 local function ipState(data, prefix)
-    status = string.sub(data, 8, -1)
+    local status = string.sub(data, 8, -1)
     if status == "IP GPRSACT" then
         request("AT+CIFSR")
         request("AT+CIPSTATUS")
