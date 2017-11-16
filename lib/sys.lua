@@ -103,14 +103,14 @@ local function checkCoreVer()
     local realver = rtos.get_version()
     --如果没有获取到底层软件版本号
     if not realver or realver == "" then
-        appendErr("checkCoreVer[no core ver error];")
+        errdump.appendErr("checkCoreVer[no core ver error];")
         return
     end
     
     local buildver = string.match(realver, "Luat_V(%d+)_")
     --如果底层软件版本号格式错误
     if not buildver then
-        appendErr("checkCoreVer[core ver format error]" .. realver .. ";")
+        errdump.appendErr("checkCoreVer[core ver format error]" .. realver .. ";")
         return
     end
     
@@ -238,9 +238,6 @@ local subscribers = {}
 --内部消息队列
 local messageQueue = {}
 
-local pendingSubscribeReqeusts = {}
-local pendingUnsubscribeRequests = {}
-
 --- 订阅消息
 -- @param id 消息id
 -- @param callback 消息回调处理
@@ -250,7 +247,8 @@ function subscribe(id, callback)
         log.warn("warning: sys.subscribe invalid parameter", id, callback)
         return
     end
-    table.insert(pendingSubscribeReqeusts, {id, callback})
+    if not subscribers[id] then subscribers[id] = {} end
+    subscribers[id][callback] = true
 end
 
 --- 取消订阅消息
@@ -262,7 +260,7 @@ function unsubscribe(id, callback)
         log.warn("warning: sys.unsubscribe invalid parameter", id, callback)
         return
     end
-    table.insert(pendingUnsubscribeRequests, {id, callback})
+    if subscribers[id] then subscribers[id][callback] = nil end
 end
 
 --- 发布内部消息，存储在内部消息队列中
@@ -275,36 +273,13 @@ end
 
 -- 分发消息
 local function dispatch()
-    -- 处理订阅、取消订阅的请求
-    for _, req in ipairs(pendingSubscribeReqeusts) do
-        local id, callback = req[1], req[2]
-        if not subscribers[id] then
-            subscribers[id] = {}
-        end
-        table.insert(subscribers[id], callback)
-    end
-    pendingSubscribeReqeusts = {}
-    
-    for _, req in ipairs(pendingUnsubscribeRequests) do
-        local id, callback = req[1], req[2]
-        if subscribers[id] then
-            for i, v in ipairs(subscribers[id]) do
-                if v == callback then
-                    table.remove(subscribers[id], i)
-                    break
-                end
-            end
-        end
-    end
-    pendingUnsubscribeRequests = {}
-    
     while true do
         if #messageQueue == 0 then
             break
         end
         local message = table.remove(messageQueue, 1)
         if subscribers[message[1]] then
-            for _, callback in ipairs(subscribers[message[1]]) do
+            for callback, _ in pairs(subscribers[message[1]]) do
                 if type(callback) == "function" then
                     callback(unpack(message, 2, #message))
                 elseif type(callback) == "thread" then
