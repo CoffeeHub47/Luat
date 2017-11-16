@@ -325,7 +325,7 @@ local function procatc(data)
             
             if lid and res then
                 if (string.find(res, keystr) == 1 or string.find(res, "TCP ERROR") == 1 or string.find(res, "UDP ERROR") == 1 or string.find(data, "DATA ACCEPT")) and (lid == string.match(currcmd, "=(%d)")) then
-                    result = true
+                    result = data:match("ERROR") == nil
                     respdata = data
                 else
                     isurc = true

@@ -35,6 +35,7 @@ local function onSocketURC(data, prefix)
     end
     
     if string.find(result, "ERROR") or result == "CLOSED" then
+        sockets[id].error = result
         coroutine.resume(sockets[id].co, false)
     end
 end
@@ -105,8 +106,12 @@ end
 -- @return result true - 成功，false - 失败
 -- @usage  c = socket.tcp(); c:connect(); c:send("12345678");
 function mt.__index:send(data)
-    sys.publish("SOCKET_ACTIVE")
     assert(self.co == coroutine.running(), "socket:send: coroutine mismatch")
+    if self.error then
+        log.warn('socket.client:send', 'error', self.error)
+        return false
+    end
+
     for i = 1, string.len(data), SENDSIZE do
         -- 按最大MTU单元对data分包
         local stepData = string.sub(data, i, i + SENDSIZE - 1)
@@ -115,7 +120,6 @@ function mt.__index:send(data)
         self.wait = "+CIPSEND"
         if not coroutine.yield() then return false end
     end
-    sys.publish("IP_STATUS_SUCCESS")
     return true
 end
 --- socket:recv([timeout])
@@ -125,7 +129,11 @@ end
 -- @usage  c = socket.tcp(); c:connect(); result, data = c:recv()
 function mt.__index:recv(timeout)
     assert(self.co == coroutine.running(), "socket:recv: coroutine mismatch")
-    
+    if self.error then
+        log.warn('socket.client:recv', 'error', self.error)
+        return false
+    end
+
     if #self.input == 0 then
         self.wait = "+RECEIVE"
         if timeout then
@@ -153,9 +161,11 @@ end
 -- @usage  c = socket.tcp(); c:connect(); c:send("123"); c:close()
 function mt.__index:close()
     assert(self.co == coroutine.running(), "socket:close: coroutine mismatch")
-    ril.request("AT+CIPCLOSE=" .. self.id)
-    self.wait = "+CIPCLOSE"
-    coroutine.yield()
+    if self.error ~= 'CLOSED' then
+        ril.request("AT+CIPCLOSE=" .. self.id)
+        self.wait = "+CIPCLOSE"
+        coroutine.yield()
+    end
     ril.deregurc(self.id, onSocketURC)
     table.insert(valid, 1, self.id)
     sockets[self.id] = nil
@@ -173,6 +183,7 @@ local function onResponse(cmd, success, response, intermediate)
             -- CIPSTART 返回OK只是表示被接受
             return
         end
+        if not success then sockets[id].error = response end
         coroutine.resume(sockets[id].co, success)
     end
 end
@@ -183,7 +194,6 @@ ril.regurc("+RECEIVE", function(urc, prefix)
     local id, len = string.match(urc, ",(%d),(%d+)", string.len("+RECEIVE") + 1)
     len = tonumber(len)
     if len == 0 then return urc end
-    sys.publish("SOCKET_ACTIVE")
     local cache = {}
     local function filter(data)
         --剩余未收到的数据长度
@@ -207,7 +217,6 @@ ril.regurc("+RECEIVE", function(urc, prefix)
         else
             table.insert(cache, data)
             len = len - string.len(data)
-            sys.publish("IP_STATUS_SUCCESS")
             return "", filter
         end
     end
