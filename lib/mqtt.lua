@@ -37,20 +37,20 @@ local function encodeUTF8(s)
 end
 
 local function packCONNECT(clientId, keepAlive, username, password, cleanSession, will)
-    local header = CONNECT * 16
-    local len = 10 + 2 + #clientId + #will.topic + #will.payload + #username + #password
-    return pack.pack(">bAPbbHPAAAA",
-        header,
-        encodeLen(len),
-        "MQTT",
-        4,
-        (#username == 0 and 0 or 1) * 128 + (#password == 0 and 0 or 1) * 64 + will.retain * 32 + will.qos * 8 + will.flag * 4 + cleanSession * 2,
-        keepAlive,
-        clientId,
-        encodeUTF8(will.topic),
-        encodeUTF8(will.payload),
-        encodeUTF8(username),
-        encodeUTF8(password))
+    local content = pack.pack(">PbbHPAAAA",								
+								"MQTT",
+								4,
+								(#username == 0 and 0 or 1) * 128 + (#password == 0 and 0 or 1) * 64 + will.retain * 32 + will.qos * 8 + will.flag * 4 + cleanSession * 2,
+								keepAlive,
+								clientId,
+								encodeUTF8(will.topic),
+								encodeUTF8(will.payload),
+								encodeUTF8(username),
+								encodeUTF8(password))
+    return pack.pack(">bAA",
+        CONNECT * 16,
+        encodeLen(string.len(content)),
+        content)
 end
 
 local function packSUBSCRIBE(dup, packetId, topics)
@@ -114,7 +114,7 @@ local function unpack(s)
         if packet.qos > 0 then
             nextpos, packet.packetId = pack.unpack(s, ">H", nextpos)
         end
-        packet.payload = string.sub(s, nextpos)
+        packet.payload = string.sub(s, nextpos, pos+len-1)
     elseif packet.id ~= PINGRESP then
         if len > 2 then
             nextpos, packet.packetId = pack.unpack(s, ">H", pos)
@@ -170,7 +170,7 @@ end
 function mqttc:checkKeepAlive()
     if self.keepAlive == 0 then return true end
     if os.time() - self.lastIOTime >= self.keepAlive then
-        if not self.io:write(packZeroData(PINGREQ)) then
+        if not self:write(packZeroData(PINGREQ)) then
             log.info("mqtt.client:checkKeepAlive", "pingreq send fail")
             return false
         end
