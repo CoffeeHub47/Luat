@@ -10,11 +10,10 @@ sys.taskInit(function()
     while not socket.isReady() do sys.wait(10000) end
     local mqttc = mqtt.client(misc.getimei())
     while true do
-        -- while not mqttc:connect("180.97.80.55", 1883) do
-        while not mqttc:connect("1.80.251.253", 1883) do
+        while not mqttc:connect("180.97.80.55", 1883) do
             sys.wait(2000)
         end
-        if mqttc:subscribe(string.format("/device/%s/req", --[[misc.getimei()]] "868575021629300")) then
+        if mqttc:subscribe(string.format("/device/%s/req", misc.getimei())) then
             local count = 0
             
             if mqttc:publish(string.format("/device/%s/report", misc.getimei()), "test publish " .. count) then
