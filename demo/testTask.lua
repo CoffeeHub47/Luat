@@ -20,7 +20,7 @@ sys.taskInit(function()
         local tmp, hum = AM2320.read(2, 0x5c)
         print("tastTask.AM2320 data is : ", tmp, hum, ccnt)
         ccnt = ccnt + 1
-        sys.wait(100)
+        sys.wait(6000)
     -- audio.chime()
     end
 end)

@@ -1,10 +1,9 @@
 --- testMqtt
 -- @module testMqtt
--- @author 小强
+-- @author ??
 -- @license MIT
 -- @copyright openLuat.com
 -- @release 2017.10.24
-
 require "mqtt"
 
 sys.taskInit(function()
@@ -16,7 +15,7 @@ sys.taskInit(function()
         end
         if mqttc:subscribe(string.format("/device/%s/req", misc.getimei())) then
             local count = 0
-
+            
             if mqttc:publish(string.format("/device/%s/report", misc.getimei()), "test publish " .. count) then
                 while true do
                     local r, data = mqttc:receive(2000)
