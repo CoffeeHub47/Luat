@@ -28,7 +28,7 @@ require "led"
 led.setup(pio.P1_1)
 -- 测试任务
 require "testTask"
-require "testMqtt"
+-- require "testMqtt"
 -- require "testSocket"
 -- require "testGPS"
 require "ntp"

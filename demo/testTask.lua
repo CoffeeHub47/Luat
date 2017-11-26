@@ -20,8 +20,19 @@ sys.taskInit(function()
         local tmp, hum = AM2320.read(2, 0x5c)
         print("tastTask.AM2320 data is : ", tmp, hum, ccnt)
         ccnt = ccnt + 1
-        sys.wait(6000)
-    -- audio.chime()
+        sys.wait(10000)
+        -- audio.chime()
+        local ss = "{\"sensorDatas\":[{\"sensorsId\":200102885,\"switcher\":1}]}"
+        local tjsondata, result, errinfo = json.decode(ss)
+        if result then
+            print("output")
+            print(tjsondata["sensorDatas"][1]["sensorsId"])
+        --print(tjsondata[sensorDatas][0])
+        else
+            print("errout:", tjsondata)
+            print("json.decode error", result, errinfo)
+            print(tjsondata["sensorDatas"][1]["sensorsId"])
+        end
     end
 end)
 -- 测试HTTP任务
@@ -35,14 +46,5 @@ sys.taskInit(function()
         code, head, body = http.request("GET", "download.openluat.com/9501-xingli/brdcGPD.dat_rda", 1000)
         log.info("testTask.http test body is length:\t", code, head, string.len(body))
         sys.wait(60000)
-    end
-end)
-
-sys.taskInit(function()
-    cnt = 0
-    while true do
-        print("taskOne__test cnt: ", cnt)
-        cnt = cnt + 1
-        sys.wait(100)
     end
 end)
