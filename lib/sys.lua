@@ -80,7 +80,7 @@ end
 -- @usage result, data = sys.waitUntil("SIM_IND", 120000)
 function waitUntil(id, ms)
     subscribe(id, coroutine.running())
-    local message, data = wait(ms)
+    local message, data = ms and wait(ms) or coroutine.yield()
     unsubscribe(id, coroutine.running())
     return message ~= nil, data
 end
