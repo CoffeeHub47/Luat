@@ -116,7 +116,7 @@ local function unpack(s)
         end
         packet.payload = string.sub(s, nextpos, pos+len-1)
     elseif packet.id ~= PINGRESP then
-        if len > 2 then
+        if len >= 2 then
             nextpos, packet.packetId = pack.unpack(s, ">H", pos)
         else
             packet.packetId = 0
