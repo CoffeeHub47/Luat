@@ -28,6 +28,8 @@ local timerPool = {}
 local taskTimerPool = {}
 --消息定时器参数表
 local para = {}
+--定时器是否循环表
+local loop = {}
 
 
 --- 启动GSM协议栈。例如在充电开机未启动GSM协议栈状态下，如果用户长按键正常开机，此时调用此接口启动GSM协议栈即可
@@ -181,7 +183,7 @@ end
 function timer_stop(val, ...)
     -- val 为定时器ID
     if type(val) == 'number' then
-        timerPool[val], para[val] = nil
+        timerPool[val], para[val], loop[val] = nil
         rtos.timer_stop(val)
     else
         for k, v in pairs(timerPool) do
@@ -190,7 +192,7 @@ function timer_stop(val, ...)
                 -- 可变参数相同
                 if cmpTable(arg, para[k]) then
                     rtos.timer_stop(k)
-                    timerPool[k], para[k] = nil
+                    timerPool[k], para[k], loop[val] = nil
                     break
                 end
             end
@@ -231,6 +233,36 @@ function timer_start(fnc, ms, ...)
     --返回定时器id
     return msgId
 end
+
+--- 函数功能--开启一个循环定时器
+-- @param fnc 定时器回调函数
+-- @number ms 整数，最大定时126322567毫秒
+-- @param ... 可变参数 fnc的参数
+-- @return number 定时器ID，如果失败，返回nil
+function timer_loop_start(fnc,ms,...)
+	local tid = timer_start(fnc,ms,unpack(arg))
+	if tid then loop[tid] = ms end
+	return tid
+end
+
+--- 函数功能--判断某个定时器是否处于开启状态
+-- @param val 有两种形式
+--一种是开启定时器时返回的定时器id，此形式时不需要再传入可变参数...就能唯一标记一个定时器
+--另一种是开启定时器时的回调函数，此形式时必须再传入可变参数...才能唯一标记一个定时器
+-- @param ... 可变参数
+-- @return number 开启状态返回true，否则nil
+function timer_is_active(val,...)
+	if type(val) == "number" then
+		return timerPool[val]
+	else
+		for k,v in pairs(timerPool) do
+			if v == val then
+				if cmpTable(arg,para[k]) then return true end
+			end
+		end
+	end
+end
+
 
 ------------------------------------------ LUA应用消息订阅/发布接口 ------------------------------------------
 -- 订阅者列表
@@ -324,12 +356,16 @@ function run()
                 end
             else
                 local cb = timerPool[param]
-                timerPool[param] = nil
+                --如果不是循环定时器，从定时器id表中删除此定时器
+                if not loop[param] then timerPool[param] = nil end
                 if para[param] ~= nil then
                     cb(unpack(para[param]))
+                    if not loop[param] then para[param] = nil end
                 else
                     cb()
                 end
+                --如果是循环定时器，继续启动此定时器
+                if loop[param] then rtos.timer_start(param,loop[param]) end
             end
         --其他消息（音频消息、充电管理消息、按键消息等）
         elseif type(msg) == "number" then
