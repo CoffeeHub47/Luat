@@ -58,3 +58,23 @@ coroutine.resume = function(...)
     end
     return wrapper(rawcoresume(unpack(arg)))
 end
+
+--保存Lua自带的json.decode接口
+if json and json.decode then oldjsondecode = json.decode end
+
+--- 封装自定义的json.decode接口
+-- @string s,json格式的字符串
+-- @return table,第一个返回值为解析json字符串后的table
+-- @return boole,第二个返回值为解析结果(true表示成功，false失败)
+-- @return string,第三个返回值可选（只有第二个返回值为false时，才有意义），表示出错信息
+function safejsondecode(s)
+    local result, info = pcall(oldjsondecode, s)
+    if result then
+        return info, true
+    else
+        return {}, false, info
+    end
+end
+
+--Lua自带的json.decode接口指向自定义的safejsondecode接口
+if json and json.decode then json.decode = safejsondecode end

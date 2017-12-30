@@ -4,80 +4,84 @@
 -- @license MIT
 -- @copyright openLuat.com
 -- @release 2017.9.20
-local sys = require "sys"
-local ril = require "ril"
-local log = require "log"
+
 module(..., package.seeall)
 local publish = sys.publish
 local request = ril.request
+local ready = false
 
+function isReady() return ready end
 
 -- apn，用户名，密码
-local apnname = "CMNET"
-local username = ''
-local password = ''
+local apnname, username, password
 
--- apnflg：本功能模块是否自动获取apn信息，true是，false则由用户应用脚本自己调用setapn接口设置apn、用户名和密码
-local apnFlag = true
-
---- 设置APN的参数
--- @string apn, APN的名字
--- @string user, APN登陆用户名
--- @string pwd,  APN登陆用户密码
-function setApn(apn, user, pwd)
-    apnname, username, password = apn, user or '', pwd or ''
-    apnFlag = false
-end
-
---- 获取APN的名称
--- @return string, APN的名字
-function getApn()
-    return apnname
+function setAPN(apn, user, pwd)
+    apnname, username, password = apn, user, pwd
 end
 
 -- SIM卡 IMSI READY以后自动设置APN
 sys.subscribe("IMSI_READY", function()
-    if apnflag then
-        if apn then
-            local temp1, temp2, temp3 = apn.get_default_apn(tonumber(sim.getMcc(), 16), tonumber(sim.getMnc(), 16))
-            if temp1 == '' or temp1 == nil then temp1 = "CMNET" end
-            setApn(temp1, temp2, temp3)
-        else
-            --sim卡的默认apn表
-            local apntable = {
-                ["46000"] = "CMNET",
-                ["46002"] = "CMNET",
-                ["46004"] = "CMNET",
-                ["46007"] = "CMNET",
-                ["46001"] = "UNINET",
-                ["46006"] = "UNINET",
-            }
-            setApn(apntable[sim.getMcc() .. sim.getMnc()] or "CMNET")
+    if not apnname then -- 如果未设置APN设置默认APN
+        local mcc, mnc = tonumber(sim.getMcc(), 16), tonumber(sim.getMnc(), 16)
+        apnname, username, password = apn and apn.get_default_apn(mcc, mnc) -- 如果存在APN库自动获取运营商的APN
+        if not apnname or apnname == '' then -- 默认情况，如果联通卡设置为联通APN 其他都默认为CMNET
+            apnname = (mcc == 0x460 and (mnc == 0x01 or mnc == 0x06)) and 'UNINET' or 'CMNET'
         end
     end
+    username = username or ''
+    password = password or ''
 end)
 
-local function ipState(data, prefix)
-    local status = string.sub(data, 8, -1)
-    if status == "IP GPRSACT" then
+local function queryStatus() request("AT+CIPSTATUS") end
+
+ril.regrsp('+CGATT', function(a, b, c, intermediate)
+    if intermediate == "+CGATT: 1" then
+        request("AT+CIPSTATUS")
+    elseif net.getState() == 'REGISTERED' then
+        sys.timer_start(request, 2000, "AT+CGATT?")
+    end
+end)
+ril.regrsp('+CIPSHUT', function(cmd, success)
+    if success then
+        ready = false
+        sys.publish("IP_SHUT_IND")
+    end
+    if net.getState() ~= 'REGISTERED' then return end
+    request('AT+CGATT?')
+end)
+
+ril.regurc("STATE", function(data)
+    local status = data:sub(8, -1)
+    log.info("link.STATE", "IP STATUS", status)
+    ready = status == "IP PROCESSING" or status == "IP STATUS"
+    if status == 'PDP DEACT' then
+        sys.timer_stop(queryStatus)
+        request('AT+CIPSHUT') -- 执行CIPSHUT将状态恢复至IP INITIAL
+        return
+    elseif status == "IP INITIAL" then
+        if net.getState() ~= 'REGISTERED' then return end
+        request(string.format('AT+CSTT="%s","%s","%s"', apnname, username, password))
+        request("AT+CIICR")
+    elseif status == "IP START" then
+        request("AT+CIICR")
+    elseif status == "IP CONFIG" then
+        -- nothing to do
+    elseif status == "IP GPRSACT" then
         request("AT+CIFSR")
         request("AT+CIPSTATUS")
+        return
     elseif status == "IP PROCESSING" or status == "IP STATUS" then
-        sys.timer_stop(request, 2000, "AT+CIPSTATUS")
-        publish("IP_STATUS_SUCCESS")
-    elseif status == "IP INITIAL" or status == "PDP DEACT" then
-        if net.flyMode then return end
-        request("AT+CSTT=\"" .. apnname .. '\",\"' .. username .. '\",\"' .. password .. "\"")
-        request("AT+CIICR")
-    elseif status == "IP CONFIG" or status == "IP START" then
-        sys.timer_start(request, 2000, "AT+CIPSTATUS")
+        sys.timer_stop(queryStatus)
+        publish("IP_READY_IND")
+        return
     end
-    ipStatus = status
-    log.info("link.ipState", "IP STATUS is:", ipStatus)
-end
-
-ril.regurc("STATE", ipState)
-ril.regurc("+PDP", function()request("AT+CIPSTATUS") end)
+    sys.timer_start(queryStatus, 2000)
+end)
+ril.regurc("+PDP", function() -- 这个URC只有PDP DEACT
+    ready = false
+    sys.publish('IP_ERROR_IND')
+    sys.timer_start(queryStatus, 2000) -- 2秒后再查询CIPSTATUS 根据IP状态来做下一步动作
+end)
 
 -- initial 只能初始化1次，这里是初始化完成标志位
 local inited = false
@@ -85,25 +89,15 @@ local inited = false
 local function initial()
     if not inited then
         inited = true
-        request("AT+CIICRMODE=2")--ciicr异步
-        request("AT+CIPMUX=1")--多链接
+        request("AT+CIICRMODE=2") --ciicr异步
+        request("AT+CIPMUX=1") --多链接
         request("AT+CIPHEAD=1")
-        request("AT+CIPQSEND=0")--发送模式
-    end
-end
-
--- GPRS附着成功 开始IP状态机处理
-local function cgattRsp(cmd, success, response, intermediate)
-    --已附着
-    if intermediate == "+CGATT: 1" then
-        request("AT+CIPSTATUS")
-    else
-        sys.timer_start(request, 2000, "AT+CGATT?", nil, cgattRsp)
+        request("AT+CIPQSEND=0") --发送模式
     end
 end
 
 -- 网络注册成功 发起GPRS附着状态查询
 sys.subscribe("NET_STATE_REGISTERED", function()
     initial()
-    sys.timer_start(request, 2000, "AT+CGATT?", nil, cgattRsp)
+    request('AT+CGATT?')
 end)

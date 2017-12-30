@@ -23,7 +23,8 @@ sys.taskInit(function()
                         r = mqttc:publish(string.format("/device/%s/resp", misc.getimei()), "response " .. data.payload)
                     elseif data == "timeout" then
                         count = count + 1
-                        r = mqttc:publish(string.format("/device/%s/report", misc.getimei()), "test publish " .. count)
+                        r = mqttc:publish(string.format("/device/%s/report", misc.getimei()), "test publish " .. count, count%3)
+                        log.info('testMqtt.publish', count, count%3, r)
                     end
                     if not r then
                         break

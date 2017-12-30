@@ -13,10 +13,24 @@ local sockets = {}
 local SENDSIZE = 1460
 -- 缓冲区最大下标
 local INDEX_MAX = 49
--- ip 服务激活标志
-local ipStatus = false
-sys.subscribe("IP_STATUS_SUCCESS", function()ipStatus = true end)
-sys.subscribe("CONNECTION_LINK_ERROR", function()ipStatus = false end)
+
+--- SOCKET 是否有可用
+-- @return 可用true,不可用false
+socket.isReady = link.isReady
+
+local function errorInd(error)
+    for _, c in pairs(sockets) do -- IP状态出错时，通知所有已连接的socket
+        if c.connected then
+            if error == 'CLOSED' then c.connected = false end
+            c.error = error
+            coroutine.resume(c.co, false)
+        end
+    end
+end
+
+sys.subscribe("IP_ERROR_IND", function() errorInd('IP_ERROR_IND') end)
+sys.subscribe('IP_SHUT_IND', function() errorInd('CLOSED') end)
+
 --订阅rsp返回的消息处理函数
 local function onSocketURC(data, prefix)
     local id, result = string.match(data, "(%d), *([%u :%d]+)")
@@ -35,6 +49,7 @@ local function onSocketURC(data, prefix)
     end
     
     if string.find(result, "ERROR") or result == "CLOSED" then
+        if result == 'CLOSED' then sockets[id].connected = false end
         sockets[id].error = result
         coroutine.resume(sockets[id].co, false)
     end
@@ -86,7 +101,7 @@ end
 function mt.__index:connect(address, port)
     assert(self.co == coroutine.running(), "socket:connect: coroutine mismatch")
     
-    if not ipStatus then
+    if not link.isReady() then
         log.info("socket.connect: ip not ready")
         return false
     end
@@ -99,7 +114,9 @@ function mt.__index:connect(address, port)
     ril.request(string.format("AT+CIPSTART=%d,\"%s\",\"%s\",%s", self.id, self.protocol, address, port))
     ril.regurc(self.id, onSocketURC)
     self.wait = "+CIPSTART"
-    return coroutine.yield()
+    if coroutine.yield() == false then return false end
+    self.connected = true
+    return true
 end
 --- socket:send
 -- @param data 数据
@@ -161,7 +178,8 @@ end
 -- @usage  c = socket.tcp(); c:connect(); c:send("123"); c:close()
 function mt.__index:close()
     assert(self.co == coroutine.running(), "socket:close: coroutine mismatch")
-    if self.error ~= 'CLOSED' then
+    if self.connected then
+        self.connected = false
         ril.request("AT+CIPCLOSE=" .. self.id)
         self.wait = "+CIPCLOSE"
         coroutine.yield()
@@ -183,6 +201,9 @@ local function onResponse(cmd, success, response, intermediate)
             -- CIPSTART 返回OK只是表示被接受
             return
         end
+        if prefix == '+CIPSEND' and response:match("%d, *([%u%d :]+)") ~= 'SEND OK' then
+            success = false
+        end
         if not success then sockets[id].error = response end
         coroutine.resume(sockets[id].co, success)
     end
@@ -190,7 +211,7 @@ end
 ril.regrsp("+CIPCLOSE", onResponse)
 ril.regrsp("+CIPSEND", onResponse)
 ril.regrsp("+CIPSTART", onResponse)
-ril.regurc("+RECEIVE", function(urc, prefix)
+ril.regurc("+RECEIVE", function(urc)
     local id, len = string.match(urc, ",(%d),(%d+)", string.len("+RECEIVE") + 1)
     len = tonumber(len)
     if len == 0 then return urc end
@@ -222,8 +243,13 @@ ril.regurc("+RECEIVE", function(urc, prefix)
     end
     return filter
 end)
---- SOCKET 是否有可用
--- @return 可用true,不可用false
-function isReady()
-    return ipStatus
+
+function printStatus()
+    log.info('socket.printStatus', 'valid id', table.concat(valid))
+
+    for _, client in pairs(sockets) do
+        for k, v in pairs(client) do
+            log.info('socket.printStatus', 'client', client.id, k, v)
+        end
+    end
 end
