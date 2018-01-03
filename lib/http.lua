@@ -58,7 +58,8 @@ function request(method, url, timeout, params, data, ctype, basic, headers)
     -- 处理查询字符串
     if params ~= nil and type(params) == "table" then path = path .. "?" .. urlencodeTab(params) end
     -- 处理HTTP协议body部分的数据
-    if data ~= nill and type(data) == "table" or type(data) == "string" then
+    if data ~= nil and type(data) == "table" or type(data) == "string" then
+        ctype = ctype or 2
         headers["Content-Type"] = Content_type[ctype]
         if ctype == 1 then sub = urlencodeTab(data) end
         if ctype == 2 then sub = json.encode(data) end
