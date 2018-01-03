@@ -16,7 +16,7 @@ function read(id, addr)
     i2c.send(id, addr, {0x03, 0x00, 0x04})
     -- sys.wait(2)
     local data = i2c.recv(id, addr, 8)
-    if data == nil or data == "" then return end
+    if data == nil or data == 0 then return end
     log.info("AM2320 data hex: ", data:tohex())
     local _, crc = pack.unpack(data, '<H', 7)
     data = string.sub(data, 1, 6)
