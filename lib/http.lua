@@ -77,8 +77,8 @@ function request(method, url, timeout, params, data, ctype, basic, headers)
         table.insert(msg, k .. ": " .. v)
     end
     -- 合并request报文
-    str = str .. "\n" .. table.concat(msg, "\n") .. "\n\n"
-    str = method .. " " .. path .. " HTTP/1.0\nHost: " .. str .. sub .. "\n"
+    str = str .. "\r\n" .. table.concat(msg, "\r\n") .. "\r\n\r\n"
+    str = method .. " " .. path .. " HTTP/1.0\r\nHost: " .. str .. sub .. "\r\n"
     -- log.info("http.request send:", str:tohex())
     -- 发送请求报文
     local c = socket.tcp()
