@@ -65,12 +65,12 @@ function wait(ms)
     -- 调用core的rtos定时器
     if 1 ~= rtos.timer_start(timerid, ms) then log.debug("rtos.timer_start error") return end
     -- 挂起调用的任务线程
-    local message, data = coroutine.yield()
+    local message = coroutine.yield()
     if message ~= nil then
         rtos.timer_stop(timerid)
         taskTimerPool[coroutine.running()] = nil
         timerPool[timerid] = nil
-        return message, data
+        return unpack(message)
     end
 end
 
@@ -82,9 +82,9 @@ end
 -- @usage result, data = sys.waitUntil("SIM_IND", 120000)
 function waitUntil(id, ms)
     subscribe(id, coroutine.running())
-    local message, data = ms and wait(ms) or coroutine.yield()
+    local message = ms and {wait(ms)} or {coroutine.yield()}
     unsubscribe(id, coroutine.running())
-    return message ~= nil, data
+    return message[1] ~= nil, unpack(message, 2, #message)
 end
 
 --- 创建一个任务线程,在模块最末行调用该函数并注册模块中的任务函数，main.lua导入该模块即可
@@ -315,7 +315,7 @@ local function dispatch()
                 if type(callback) == "function" then
                     callback(unpack(message, 2, #message))
                 elseif type(callback) == "thread" then
-                    coroutine.resume(callback, message[1], {unpack(message, 2, #message)})
+                    coroutine.resume(callback, message) -- 直接传message, 避免在wait与waitUntil处反复构造展开table
                 end
             end
         end
