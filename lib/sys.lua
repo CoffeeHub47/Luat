@@ -315,7 +315,7 @@ local function dispatch()
                 if type(callback) == "function" then
                     callback(unpack(message, 2, #message))
                 elseif type(callback) == "thread" then
-                    coroutine.resume(callback, message) -- 直接传message, 避免在wait与waitUntil处反复构造展开table
+                    coroutine.resume(callback, unpack(message))
                 end
             end
         end
