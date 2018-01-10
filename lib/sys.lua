@@ -65,8 +65,8 @@ function wait(ms)
     -- 调用core的rtos定时器
     if 1 ~= rtos.timer_start(timerid, ms) then log.debug("rtos.timer_start error") return end
     -- 挂起调用的任务线程
-    local message = coroutine.yield()
-    if message ~= nil then
+    local message = {coroutine.yield()}
+    if #message ~= 0 then
         rtos.timer_stop(timerid)
         taskTimerPool[coroutine.running()] = nil
         timerPool[timerid] = nil
