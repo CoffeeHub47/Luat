@@ -36,7 +36,8 @@ function read(id)
     local _, crc = pack.unpack(data, '<H', 7)
     data = data:sub(1, 6)
     if crc == crypto.crc16_modbus(data, 6) then
-        local _, hum, tmp = pack.unpack(string.sub(data, 3, -1), '>h2')
+        local _, hum, tmp = pack.unpack(string.sub(data, 3, -1), '>H2')
+        if tmp >= 0x8000 then tmp = 0x8000 - tmp end
         return tmp, hum
     end
 end
