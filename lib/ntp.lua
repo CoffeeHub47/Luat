@@ -29,11 +29,18 @@ local NTP_TIMEOUT = 8000
 local NTP_RETRY = 3
 -- 网络获取的时间table
 local ntpTime = {}
+-- 同步是否完成标记
+local ntpend = false
+function isEnd()
+    return ntpend
+end
+
 ---  自动同步时间，每个NTP服务器尝试3次，超时8秒
 -- @return 无
 -- @usage ntp.timeSync()
 function timeSync()
     sys.taskInit(function()
+        ntpend = false
         for i = 1, #timeServer do
             while not socket.isReady() do sys.wait(10000) end
             local c = socket.udp()
@@ -50,7 +57,11 @@ function timeSync()
             sys.wait(1000)
             local date = misc.getClock()
             log.info("ntp.timeSync is date:", date.year .. "/" .. date.month .. "/" .. date.day .. "," .. date.hour .. ":" .. date.min .. ":" .. date.sec)
-            if ntpTime.year == date.year and ntpTime.day == date.day and ntpTime.min == date.min then ntpTime = {} break end
+            if ntpTime.year == date.year and ntpTime.day == date.day and ntpTime.min == date.min then
+                ntpTime = {}
+                ntpend = true
+                break
+            end
         end
     end)
 end
