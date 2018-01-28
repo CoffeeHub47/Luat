@@ -45,7 +45,7 @@
   <li><a href="../modules/test.html">test</a></li>
   <li><a href="../modules/AM2320.html">AM2320</a></li>
   <li><a href="../modules/SSD1306.html">SSD1306</a></li>
-  <li><strong>SH1106</strong></li>
+  <li><a href="../modules/SH1106.html">SH1106</a></li>
   <li><a href="../modules/agps.html">agps</a></li>
   <li><a href="../modules/audio.html">audio</a></li>
   <li><a href="../modules/clib.html">clib</a></li>
@@ -61,7 +61,7 @@
   <li><a href="../modules/mqtt.html">mqtt</a></li>
   <li><a href="../modules/net.html">net</a></li>
   <li><a href="../modules/ntp.html">ntp</a></li>
-  <li><a href="../modules/lib.patch.html">lib.patch</a></li>
+  <li><strong>lib.patch</strong></li>
   <li><a href="../modules/pins.html">pins</a></li>
   <li><a href="../modules/pm.html">pm</a></li>
   <li><a href="../modules/ril.html">ril</a></li>
@@ -81,25 +81,24 @@
 
 <div id="content">
 
-<h1>Module <code>SH1106</code></h1>
-<p>模块名称：SH1106驱动芯片命令配置</p>
+<h1>Module <code>lib.patch</code></h1>
+<p>AM2320 系统补丁</p>
 <p>
 
 </p>
     <h3>Info:</h3>
     <ul>
-        <li><strong>Copyright</strong>: openLuat</li>
-        <li><strong>Release</strong>: 2017.10.17</li>
+        <li><strong>Copyright</strong>: openLuat.com</li>
+        <li><strong>Release</strong>: 2017.10.19</li>
         <li><strong>License</strong>: MIT</li>
-        <li><strong>Author</strong>: 稀饭放姜</li>
     </ul>
 
 
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#init">init (rst, dc, cs, bus)</a></td>
-	<td class="summary">显示屏驱动初始化</td>
+	<td class="name" nowrap><a href="#safejsondecode">safejsondecode (s)</a></td>
+	<td class="summary">封装自定义的json.decode接口</td>
 	</tr>
 </table>
 
@@ -111,41 +110,33 @@
 
     <dl class="function">
     <dt>
-    <a name = "init"></a>
-    <strong>init (rst, dc, cs, bus)</strong>
+    <a name = "safejsondecode"></a>
+    <strong>safejsondecode (s)</strong>
     </dt>
     <dd>
-    显示屏驱动初始化
+    封装自定义的json.decode接口
 
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">rst</span>
-        , LCD复位引脚对应pio
-        </li>
-        <li><span class="parameter">dc</span>
-        , LCD 数据和指令引脚对应pio
-        </li>
-        <li><span class="parameter">cs</span>
-        , LCD 片选 对应pio
-        </li>
-        <li><span class="parameter">bus</span>
-        , LCD 使用的总线接口
+        <li><span class="parameter">s</span>
+            <span class="types"><a class="type" href="https://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+        ,json格式的字符串
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
-
-        无
+        <li>
+        table,第一个返回值为解析json字符串后的table</li>
+        <li>
+        boole,第二个返回值为解析结果(true表示成功，false失败)</li>
+        <li>
+        string,第三个返回值可选（只有第二个返回值为false时，才有意义），表示出错信息</li>
     </ol>
 
 
 
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example">init(pio.P0_28,pio.P0_29,pio.P0_30)</pre>
-    </ul>
 
 </dd>
 </dl>

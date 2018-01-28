@@ -1,3 +1,8 @@
+--- AM2320 系统补丁
+-- @license MIT
+-- @copyright openLuat.com
+-- @release 2017.10.19
+
 --[[
 模块名称：Lua自带接口补丁
 模块功能：补丁某些Lua自带的接口，规避调用异常时死机

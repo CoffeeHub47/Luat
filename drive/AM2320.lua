@@ -21,7 +21,6 @@ end
 
 --- 读取AM2320的数据
 -- @number id, 端口号0-2
--- @number addr,从设备地址16进制,如0x3c
 -- @return string，string，第一个参数是温度，第二个是湿度
 -- @usage tmp, hum = read()
 function read(id)
