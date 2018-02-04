@@ -8,6 +8,8 @@ require "log"
 LOG_LEVEL = log.LOGLEVEL_TRACE
 require "sys"
 require "utils"
+require "patch"
+require "pins"
 -- 加载GSM
 require "net"
 --8秒后查询第一次csq
@@ -21,11 +23,9 @@ require "misc"
 require "wdt"
 wdt.setup(pio.P0_31, pio.P0_29)
 -- 系統指示灯
-require "led"
--- AIR800的NET_LED
--- led.setup(pio.P0_28)
--- AIR202的NET_LED
-led.setup(pio.P1_1)
+require "ledTask"
+-- AIR800的NET_LED(pio.P0_28)
+-- AIR202的NET_LED(pio.P1_1)
 -- 测试任务
 require "testTask"
 -- require "testMqtt"
