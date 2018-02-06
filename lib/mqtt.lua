@@ -108,7 +108,7 @@ local function unpack(s)
     local nextpos
 
     if packet.id == CONNACK then
-        nextpos, packet.rc = pack.unpack(s, ">H", pos)
+        nextpos, packet.ackFlag, packet.rc = pack.unpack(s, "bb", pos)
     elseif packet.id == PUBLISH then
         nextpos, packet.topic = pack.unpack(s, ">P", pos)
         if packet.qos > 0 then
@@ -135,7 +135,7 @@ mqttc.__index = mqttc
 -- @param username 用户名为空请输入nil
 -- @param password 密码为空请输入nil
 -- @param cleanSession 1/0
--- @param will 遗嘱参数(Last Will/Testament), will.flag, will.qos, will.retain, will.topic, will.payload
+-- @param will 遗嘱参数(Last Will/Testament), 若不打开LWT请不要传递该参数，传递参数默认为打开LWT，will.qos, will.retain, will.topic, will.payload
 -- @return result true - 成功，false - 失败
 -- @usage
 -- mqttc = mqtt.client("clientid-123", nil, nil, false)
@@ -143,7 +143,11 @@ function client(clientId, keepAlive, username, password, cleanSession, will)
     local o = {}
     local packetId = 1
 
-    will = will or { flag = 0, qos = 0, retain = 0, topic = "", payload = "" }
+    if will then
+        will.flag = 1
+    else
+        will = { flag = 0, qos = 0, retain = 0, topic = "", payload = "" }
+    end
 
     o.clientId = clientId
     o.keepAlive = keepAlive or 300
