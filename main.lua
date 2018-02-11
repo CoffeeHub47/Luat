@@ -21,7 +21,7 @@ console.setup(1, 115200)
 require "misc"
 -- 看门狗
 require "wdt"
-wdt.setup(pio.P0_31, pio.P0_29)
+wdt.setup(pio.P0_30, pio.P0_31)
 -- 系統指示灯
 require "ledTask"
 -- AIR800的NET_LED(pio.P0_28)
