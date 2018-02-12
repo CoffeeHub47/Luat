@@ -237,7 +237,6 @@ function switchFly(mode)
     -- 处理飞行模式
     if mode then
         ril.request("AT+CFUN=4")
-        publish("FLYMODE")
     -- 处理退出飞行模式
     else
         ril.request("AT+CFUN=1")
@@ -359,6 +358,8 @@ local function rsp(cmd, success, response, intermediate)
                 --产生一个内部消息GSM_SIGNAL_REPORT_IND，表示读取到了信号强度
                 publish("GSM_SIGNAL_REPORT_IND", success, rssi)
             end
+        elseif prefix == "+CFUN" then
+            publish("FLYMODE", flyMode)
         elseif prefix == "+CENG" then end
     end
 end
@@ -464,6 +465,7 @@ ril.regurc("+CRSM", neturc)
 --注册AT+CCSQ和AT+CENG?命令的应答处理函数
 ril.regrsp("+CSQ", rsp)
 ril.regrsp("+CENG", rsp)
+ril.regrsp("+CFUN", rsp)-- 飞行模式
 --发送AT命令
 ril.request("AT+CREG=2")
 ril.request("AT+CREG?")
