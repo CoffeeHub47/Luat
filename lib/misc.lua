@@ -45,6 +45,7 @@ end
 -- @return 无
 -- @usage misc.setClock({year=2017,month=2,day=14,hour=14,min=2,sec=58})
 function setClock(t)
+    if t == nil or type(t) ~= "table" then return end
     if t.year - 2000 > 38 then return end
     req(string.format("AT+CCLK=\"%02d/%02d/%02d,%02d:%02d:%02d+32\"", string.sub(t.year, 3, 4), t.month, t.day, t.hour, t.min, t.sec), nil, rsp)
 end
