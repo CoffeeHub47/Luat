@@ -32,7 +32,7 @@ require "testTask"
 -- require "testSocket"
 -- require "testGPS"
 require "ntp"
-ntp.timeSync()
+ntp.timeSync(1,function()log.info("----------------> AutoTimeSync is Done ! <----------------")end)
 require "http"
 require "audio"
 -- 测试LCD任务

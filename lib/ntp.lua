@@ -27,41 +27,58 @@ local timeServer = {
 local NTP_TIMEOUT = 8000
 -- 同步重试次数
 local NTP_RETRY = 3
--- 网络获取的时间table
-local ntpTime = {}
 -- 同步是否完成标记
 local ntpend = false
 function isEnd()
     return ntpend
 end
 
----  自动同步时间，每个NTP服务器尝试3次，超时8秒
+--- 同步时间，每个NTP服务器尝试3次，超时8秒,适用于被任务函数调用
+-- @param ts,每隔ts小时同步1次
+-- @param fnc,同步成功后回调函数
 -- @return 无
--- @usage ntp.timeSync()
-function timeSync()
-    sys.taskInit(function()
-        ntpend = false
+-- @usage ntp.ntpTime() -- 只同步1次
+-- @usage ntp.ntpTime(1) -- 1小时同步1次
+-- @usage ntp.ntpTime(nil,fnc) -- 只同步1次，同步成功后执行fnc()
+-- @usage ntp.ntpTime(24,fnc) -- 24小时同步1次，同步成功后执行fnc()
+function ntpTime(ts,fnc)
+    local rc, data, ntim
+    ntpend = false
+    while true do
         for i = 1, #timeServer do
-            while not socket.isReady() do sys.wait(10000) end
+            while not socket.isReady() do sys.wait(1000) end
             local c = socket.udp()
-            while true do
-                for num = 1, NTP_RETRY do if c:connect(timeServer[i], "123") then break end sys.wait(NTP_TIMEOUT) end
-                if not c:send(string.fromhex("E30006EC0000000000000000314E31340000000000000000000000000000000000000000000000000000000000000000")) then break end
-                local _, data = c:recv()
-                if #data ~= 48 then break end
-                ntpTime = os.date("*t", (sbyte(ssub(data, 41, 41)) - 0x83) * 2 ^ 24 + (sbyte(ssub(data, 42, 42)) - 0xAA) * 2 ^ 16 + (sbyte(ssub(data, 43, 43)) - 0x7E) * 2 ^ 8 + (sbyte(ssub(data, 44, 44)) - 0x80) + 1)
-                misc.setClock(ntpTime)
-                break
+            for num = 1, NTP_RETRY do
+                if c:connect(timeServer[i], "123") then break end
+                sys.wait(NTP_TIMEOUT)
             end
-            c:close()
-            sys.wait(1000)
-            local date = misc.getClock()
-            log.info("ntp.timeSync is date:", date.year .. "/" .. date.month .. "/" .. date.day .. "," .. date.hour .. ":" .. date.min .. ":" .. date.sec)
-            if ntpTime.year == date.year and ntpTime.day == date.day and ntpTime.min == date.min then
-                ntpTime = {}
-                ntpend = true
-                break
-            end
+            if c:send(string.fromhex("E30006EC0000000000000000314E31340000000000000000000000000000000000000000000000000000000000000000")) then
+                rc, data = c:recv(NTP_TIMEOUT)
+                if rc and #data == 48 then
+                    ntim = os.date("*t", (sbyte(ssub(data, 41, 41)) - 0x83) * 2 ^ 24 + (sbyte(ssub(data, 42, 42)) - 0xAA) * 2 ^ 16 + (sbyte(ssub(data, 43, 43)) - 0x7E) * 2 ^ 8 + (sbyte(ssub(data, 44, 44)) - 0x80) + 1)
+                    misc.setClock(ntim)
+                    c:close()
+                    ntpend = true 
+                    if fnc ~= nil and type(fnc) == "function" then fnc() end
+                    break
+                end
+            end           
+            c:close() 
         end
-    end)
+        log.info("ntp.timeSync is date:", ntim.year .. "/" .. ntim.month .. "/" .. ntim.day .. "," .. ntim.hour .. ":" .. ntim.min .. ":" .. ntim.sec) 
+        if ts == nil or type(ts) ~= "number" then break end
+        sys.wait(ts * 3600 * 1000)
+    end
 end
+---  自动同步时间任务适合独立执行
+-- @return 无
+-- @param ts,每隔ts小时同步1次
+-- @param fnc,同步成功后回调函数
+-- @usage ntp.timeSync() -- 只同步1次
+-- @usage ntp.timeSync(1) -- 1小时同步1次
+-- @usage ntp.timeSync(nil,fnc) -- 只同步1次，同步成功后执行fnc()
+-- @usage ntp.timeSync(24,fnc) -- 24小时同步1次，同步成功后执行fnc()
+function timeSync(ts,fnc)
+    sys.taskInit(ntpTime,ts,fnc)
+end
+
