@@ -12,7 +12,7 @@ sys.taskInit(function()
     local r, s
     
     while true do
-        while not socket.isReady() do sys.wait(10000) end
+        while not socket.isReady() do sys.wait(1000) end
         local c = socket.tcp()
         while not c:connect("120.27.222.26", 60000) do
             sys.wait(2000)

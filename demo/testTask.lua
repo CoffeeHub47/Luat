@@ -37,21 +37,11 @@ module(..., package.seeall)
 -- end)
 -- 测试HTTP任务
 sys.taskInit(function()
-    local data = {
-        ["topic"] = "test",
-        ["payload"] = "hello",
-        ["qos"] = 1,
-        ["retain"] = false,
-        ["client_id"] = "C_1492145414740"
-    }
     while true do
         while not socket.isReady() do sys.wait(1000) end
         -- local code, head, body = http.request("GET", "http://www.nmc.cn/f/rest/real/54511", 1000)
         -- log.info("testTask.http test body is length:\t", code, head, string.len(body))
         -- for k, v in pairs(head) do print("testTask.http head :\t", k, v) end
-        local code, head, body = http.request("POST", "http://www.yfznscd.com:8080/api/v2/mqtt/publish", 1000, nil, data, 2, "admin:yfkj_6019")
-        log.info("testTask.http test body is length:\t", code, head, string.len(body))
-        for k, v in pairs(head) do print("testTask.http head :\t", k, v) end
         sys.wait(60000)
         -- code, head, body = http.request("GET", "download.openluat.com/9501-xingli/brdcGPD.dat_rda", 1000)
         -- log.info("testTask.http test body is length:\t", code, head, string.len(body))
