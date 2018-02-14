@@ -49,25 +49,30 @@ function ntpTime(ts,fnc)
             while not socket.isReady() do sys.wait(1000) end
             local c = socket.udp()
             for num = 1, NTP_RETRY do
-                if c:connect(timeServer[i], "123") then break end
-                sys.wait(NTP_TIMEOUT)
-            end
-            if c:send(string.fromhex("E30006EC0000000000000000314E31340000000000000000000000000000000000000000000000000000000000000000")) then
-                rc, data = c:recv(NTP_TIMEOUT)
-                if rc and #data == 48 then
-                    ntim = os.date("*t", (sbyte(ssub(data, 41, 41)) - 0x83) * 2 ^ 24 + (sbyte(ssub(data, 42, 42)) - 0xAA) * 2 ^ 16 + (sbyte(ssub(data, 43, 43)) - 0x7E) * 2 ^ 8 + (sbyte(ssub(data, 44, 44)) - 0x80) + 1)
-                    misc.setClock(ntim)
-                    c:close()
-                    ntpend = true 
-                    if fnc ~= nil and type(fnc) == "function" then fnc() end
-                    break
+                if c:connect(timeServer[i], "123") then                
+                    if c:send(string.fromhex("E30006EC0000000000000000314E31340000000000000000000000000000000000000000000000000000000000000000")) then
+                        rc, data = c:recv(NTP_TIMEOUT)
+                        if rc and #data == 48 then
+                            ntim = os.date("*t", (sbyte(ssub(data, 41, 41)) - 0x83) * 2 ^ 24 + (sbyte(ssub(data, 42, 42)) - 0xAA) * 2 ^ 16 + (sbyte(ssub(data, 43, 43)) - 0x7E) * 2 ^ 8 + (sbyte(ssub(data, 44, 44)) - 0x80) + 1)
+                            misc.setClock(ntim)
+                            ntpend = true 
+                            if fnc ~= nil and type(fnc) == "function" then fnc() end
+                            break
+                        end
+                    end 
                 end
-            end           
+                sys.wait(1000)
+            end          
             c:close() 
         end
-        log.info("ntp.timeSync is date:", ntim.year .. "/" .. ntim.month .. "/" .. ntim.day .. "," .. ntim.hour .. ":" .. ntim.min .. ":" .. ntim.sec) 
-        if ts == nil or type(ts) ~= "number" then break end
-        sys.wait(ts * 3600 * 1000)
+        if ntpend then 
+            log.info("ntp.timeSync is date:", ntim.year .. "/" .. ntim.month .. "/" .. ntim.day .. "," .. ntim.hour .. ":" .. ntim.min .. ":" .. ntim.sec) 
+            if ts == nil or type(ts) ~= "number" then break end
+            sys.wait(ts * 3600 * 1000)
+        else
+            log.info("ntp.timeSync is error!")
+            sys.wait(1000)
+        end
     end
 end
 ---  自动同步时间任务适合独立执行
