@@ -13,6 +13,8 @@ module(..., package.seeall)
 -- NTP服务器域名集合
 local timeServer = {
     "ntp1.aliyun.com",
+    "edu.ntp.org.cn",  
+    "cn.ntp.org.cn",
     "ntp2.aliyun.com",
     "ntp3.aliyun.com",
     "ntp4.aliyun.com",
@@ -25,10 +27,26 @@ local timeServer = {
 }
 -- 同步超时等待时间
 local NTP_TIMEOUT = 8000
--- 同步重试次数
-local NTP_RETRY = 3
 -- 同步是否完成标记
 local ntpend = false
+
+--- 获取NTP服务器地址列表
+-- @return table,服务器地址列表
+-- @usage local addtable = ntp.getServers()
+function getServers()
+    return timeServer
+end
+
+--- 设置NTP服务器地址列表
+-- @param table,服务器地址列表
+-- @usage ntp.getServers({"1edu.ntp.org.cn","cn.ntp.org.cn"})
+function setServers(st)
+    timeServer =  st
+end
+
+--- NTP同步标志
+-- @return boole,NTP的同步状态true为成功,fasle为失败
+-- @usage local sta = ntp.isEnd()
 function isEnd()
     return ntpend
 end
@@ -48,24 +66,24 @@ function ntpTime(ts,fnc)
         for i = 1, #timeServer do
             while not socket.isReady() do sys.wait(1000) end
             local c = socket.udp()
-            for num = 1, NTP_RETRY do
-                if c:connect(timeServer[i], "123") then                
-                    if c:send(string.fromhex("E30006EC0000000000000000314E31340000000000000000000000000000000000000000000000000000000000000000")) then
-                        rc, data = c:recv(NTP_TIMEOUT)
-                        if rc and #data == 48 then
-                            ntim = os.date("*t", (sbyte(ssub(data, 41, 41)) - 0x83) * 2 ^ 24 + (sbyte(ssub(data, 42, 42)) - 0xAA) * 2 ^ 16 + (sbyte(ssub(data, 43, 43)) - 0x7E) * 2 ^ 8 + (sbyte(ssub(data, 44, 44)) - 0x80) + 1)
-                            misc.setClock(ntim)
-                            ntpend = true 
-                            if fnc ~= nil and type(fnc) == "function" then fnc() end
-                            break
-                        end
-                    end 
-                end
-                sys.wait(1000)
-            end          
+            if c:connect(timeServer[i], "123") then                
+                if c:send(string.fromhex("E30006EC0000000000000000314E31340000000000000000000000000000000000000000000000000000000000000000")) then
+                    rc, data = c:recv(NTP_TIMEOUT)
+                    if rc and #data == 48 then
+                        ntim = os.date("*t", (sbyte(ssub(data, 41, 41)) - 0x83) * 2 ^ 24 + (sbyte(ssub(data, 42, 42)) - 0xAA) * 2 ^ 16 + (sbyte(ssub(data, 43, 43)) - 0x7E) * 2 ^ 8 + (sbyte(ssub(data, 44, 44)) - 0x80) + 1)
+                        misc.setClock(ntim)
+                        ntpend = true 
+                        if fnc ~= nil and type(fnc) == "function" then fnc() end
+                        c:close() 
+                        break
+                    end
+                end 
+            end
             c:close() 
+            sys.wait(1000)     
         end
         if ntpend then 
+            sys.publish("NTP_SUCCEED")
             log.info("ntp.timeSync is date:", ntim.year .. "/" .. ntim.month .. "/" .. ntim.day .. "," .. ntim.hour .. ":" .. ntim.min .. ":" .. ntim.sec) 
             if ts == nil or type(ts) ~= "number" then break end
             sys.wait(ts * 3600 * 1000)
