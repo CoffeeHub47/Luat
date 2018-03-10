@@ -24,8 +24,8 @@ function run()
 			for cnt=1,RETRY do
 				while not socket.isReady() do sys.waitUntil('IP_READY_IND') end
 				local sck = socket.tcp()			
-				if sck:connect("iot.yunpolice.cn","80") then
-					local url = "/updata.php?project_key=".._G.PRODUCT_KEY
+				if sck:connect("iot.openluat.com","80") then
+					local url = "/api/site/firmware_upgrade?project_key=".._G.PRODUCT_KEY
 						.."&imei="..misc.getimei().."&device_key="..misc.getsn()
 						.."&firmware_name=".._G.PROJECT.."_"..rtos.get_version().."&version=".._G.VERSION
 					if sck:send("GET "..url.." HTTP/1.1\r\nConnection: keep-alive\r\nHost: iot.openluat.com\r\n\r\n") then
