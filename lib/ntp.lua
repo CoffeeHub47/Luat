@@ -38,7 +38,8 @@ function getServers()
 end
 
 --- 设置NTP服务器地址列表
--- @param table,服务器地址列表
+-- @param st,tab类型，服务器地址列表
+-- @return 无
 -- @usage ntp.getServers({"1edu.ntp.org.cn","cn.ntp.org.cn"})
 function setServers(st)
     timeServer =  st

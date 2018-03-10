@@ -35,6 +35,7 @@ require "ntp"
 ntp.timeSync(1,function()log.info("----------------> AutoTimeSync is Done ! <----------------")end)
 require "http"
 require "audio"
+-- require "i2cTest"
 -- 测试LCD任务
 -- require "ui"
 -- ui.init(pio.P0_8, pio.P0_10, pio.P0_11, pio.P0_12)
