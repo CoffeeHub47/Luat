@@ -1,6 +1,6 @@
---- Ä£¿é¹¦ÄÜ£ºÔ¶³ÌÉı¼¶
+--- æ¨¡å—åŠŸèƒ½ï¼šè¿œç¨‹å‡çº§
 -- @module ntp
--- @author ÖìÌì»ª
+-- @author æœ±å¤©å
 -- @license MIT
 -- @copyright openLuat
 -- @release 2017.11.14
@@ -10,12 +10,12 @@ require "socket"
 require "log"
 local sbyte, ssub = string.byte, string.sub
 module(..., package.seeall)
--- ÖØÊÔ´ÎÊı
+-- é‡è¯•æ¬¡æ•°
 local RETRY = 3
--- Éı¼¶°ü±£´æÂ·¾¶
+-- å‡çº§åŒ…ä¿å­˜è·¯å¾„
 local UPD_PATH = "/luazip/update.bin"
----  ×Ô¶¯Á¬½Ó·şÎñÆ÷£¬¼ì²éÉı¼¶£¬ÏÂÔØÉı¼¶°üs
--- @return ÎŞ
+---  è‡ªåŠ¨è¿æ¥æœåŠ¡å™¨ï¼Œæ£€æŸ¥å‡çº§ï¼Œä¸‹è½½å‡çº§åŒ…s
+-- @return æ— 
 -- @usage update.run()
 function run()
 	sys.taskInit(

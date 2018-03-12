@@ -1,9 +1,10 @@
---- 模块功能：网络授时
+--- 模块功能 : 网络授时
 -- @module ntp
 -- @author 稀饭放姜
 -- @license MIT
 -- @copyright openLuat
 -- @release 2017.10.21
+
 require "misc"
 require "socket"
 require "utils"

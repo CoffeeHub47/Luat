@@ -1,6 +1,6 @@
---- SIMµç»°²¾¹ÜÀí
+--- SIMç”µè¯ç°¿ç®¡ç†
 -- @module cc
--- @author »Æä­
+-- @author é»„æ´µ
 -- @license MIT
 -- @copyright yunpolice.cn
 -- @release 2018.03.10
@@ -13,10 +13,10 @@ local print,tonumber,req = base.print,base.tonumber,ril.request
 --local smatch = string.match
 local storagecb,readcb,writecb,deletecb
 
---- ÉèÖÃµç»°±¾´æ´¢ÇøÓò
--- @param str, stringÀàĞÍ£¬´æ´¢ÇøÓò×Ö·û´®£¬½öÖ§³Ö"ME"ºÍ"SM"
--- @param cb, ÉèÖÃºóµÄ»Øµ÷º¯Êı
--- @return ÎŞ
+--- è®¾ç½®ç”µè¯æœ¬å­˜å‚¨åŒºåŸŸ
+-- @param str, stringç±»å‹ï¼Œå­˜å‚¨åŒºåŸŸå­—ç¬¦ä¸²ï¼Œä»…æ”¯æŒ"ME"å’Œ"SM"
+-- @param cb, è®¾ç½®åçš„å›è°ƒå‡½æ•°
+-- @return æ— 
 -- @usage pb.setsgorage(str,cb)
 function setstorage(str,cb)
 	if str=="SM" or str=="ME" then
@@ -24,9 +24,9 @@ function setstorage(str,cb)
 		req("AT+CPBS=\"" .. str .. "\"" )
 	end
 end
---- ²éÕÒÓÃ»§ÃûÊÇ·ñ´æÔÚ
--- @param name,stringÀàĞÍ
--- @return boole£¬true´æÔÚ,false²»´æÔÚ
+--- æŸ¥æ‰¾ç”¨æˆ·åæ˜¯å¦å­˜åœ¨
+-- @param name,stringç±»å‹
+-- @return booleï¼Œtrueå­˜åœ¨,falseä¸å­˜åœ¨
 -- @usage pb.find(name)
 function find(name)
 	if name == "" or name == nil then
@@ -36,10 +36,10 @@ function find(name)
 	return true
 end
 
---- ¶ÁÈ¡Ò»Ìõµç»°±¾¼ÇÂ¼
--- @param index, numberÀàĞÍ£¬µç»°±¾ÔÚ´æ´¢ÇøµÄÎ»ÖÃ
--- @param cb,¶ÁÈ¡ºóµÄ»Øµ÷º¯Êı
--- @usage ÎŞ
+--- è¯»å–ä¸€æ¡ç”µè¯æœ¬è®°å½•
+-- @param index, numberç±»å‹ï¼Œç”µè¯æœ¬åœ¨å­˜å‚¨åŒºçš„ä½ç½®
+-- @param cb,è¯»å–åçš„å›è°ƒå‡½æ•°
+-- @usage æ— 
 -- @usage pb.read(1,cb)
 function read(index,cb)
 	if index == "" or index == nil then
@@ -49,12 +49,12 @@ function read(index,cb)
 	req("AT+CPBR=" .. index)
 end
 
---- Ğ´Ò»Ìõµç»°±¾¼ÇÂ¼
--- @param index, numberÀàĞÍ£¬µç»°±¾ÔÚ´æ´¢ÇøµÄÎ»ÖÃ
--- @param name, stringÀàĞÍ ,ĞÕÃû
--- @param num, number or stringÀàĞÍ,ºÅÂë
--- @param cb, functionlÀàĞÍ£¬Ğ´ÈëºóµÄ»Øµ÷º¯Êı
--- @return ÎŞ
+--- å†™ä¸€æ¡ç”µè¯æœ¬è®°å½•
+-- @param index, numberç±»å‹ï¼Œç”µè¯æœ¬åœ¨å­˜å‚¨åŒºçš„ä½ç½®
+-- @param name, stringç±»å‹ ,å§“å
+-- @param num, number or stringç±»å‹,å·ç 
+-- @param cb, functionlç±»å‹ï¼Œå†™å…¥åçš„å›è°ƒå‡½æ•°
+-- @return æ— 
 -- @usage pb.writeitem(1,zhangsan,13233334444,cb)
 function writeitem(index,name,num,cb)
 	if num == nil or name == nil or index == nil then
@@ -66,10 +66,10 @@ function writeitem(index,name,num,cb)
 end
 
 
---- É¾³ıÒ»Ìõµç»°±¾¼ÇÂ¼
--- @param i, numberÀàĞÍ£¬µç»°±¾ÔÚ´æ´¢ÇøµÄÎ»ÖÃ
--- @param cb, functionÀàĞÍ£¬É¾³ıºóµÄ»Øµ÷º¯Êı
--- @return ÎŞ
+--- åˆ é™¤ä¸€æ¡ç”µè¯æœ¬è®°å½•
+-- @param i, numberç±»å‹ï¼Œç”µè¯æœ¬åœ¨å­˜å‚¨åŒºçš„ä½ç½®
+-- @param cb, functionç±»å‹ï¼Œåˆ é™¤åçš„å›è°ƒå‡½æ•°
+-- @return æ— 
 -- @usage pb.deleteitem(1,cb)
 function deleteitem(i,cb)
 	if i == "" or i == nil then

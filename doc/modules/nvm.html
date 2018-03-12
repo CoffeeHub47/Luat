@@ -88,7 +88,7 @@
 <div id="content">
 
 <h1>Module <code>nvm</code></h1>
-<p>ģ�鹦�ܣ���������</p>
+<p>模块功能 ：参数管理</p>
 <p>
 
 </p>
@@ -97,7 +97,7 @@
         <li><strong>Copyright</strong>: openLuat</li>
         <li><strong>Release</strong>: 2017.11.9</li>
         <li><strong>License</strong>: MIT</li>
-        <li><strong>Author</strong>: ���컪</li>
+        <li><strong>Author</strong>: 朱天华</li>
     </ul>
 
 
@@ -105,15 +105,15 @@
 <table class="function_list">
 	<tr>
 	<td class="name" nowrap><a href="#restore">restore ()</a></td>
-	<td class="summary">�����ָ���������</td>
+	<td class="summary">参数恢复出厂设置</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#set">set (k, v, r, s)</a></td>
-	<td class="summary">����ĳ��������ֵ</td>
+	<td class="summary">设置某个参数的值</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#sett">sett (k, kk, v, r, s)</a></td>
-	<td class="summary">����ĳ��������ֵ</td>
+	<td class="summary">设置某个参数的值</td>
 	</tr>
 </table>
 
@@ -129,7 +129,7 @@
     <strong>restore ()</strong>
     </dt>
     <dd>
-    �����ָ���������
+    参数恢复出厂设置
 
 
 
@@ -152,39 +152,39 @@
     <strong>set (k, v, r, s)</strong>
     </dt>
     <dd>
-    ����ĳ��������ֵ
+    设置某个参数的值
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">k</span>
-         ��string���ͣ�����������
+         ，string类型，参数的名字
         </li>
         <li><span class="parameter">v</span>
-        ���������������ͣ���������ֵ
+        ，可以是任意类型，参数的新值
         </li>
         <li><span class="parameter">r</span>
-        ������ԭ��ֻ�д����˷�nil����Ч����������vֵ�;�ֵ��ȷ����˸ı䣬�Ż����һ��PARA<em>CHANGED</em>IND��Ϣ
+        ，设置原因，只有传入了非nil的有效参数，并且v值和旧值相比发生了改变，才会产生一个PARA<em>CHANGED</em>IND消息
         </li>
         <li><span class="parameter">s</span>
-        ���Ƿ�����д�뵽�ļ�ϵͳ�У�false��д�룬����Ķ�д��
+        ，是否立即写入到文件系统中，false不写入，其余的都写入
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-        bool����nil���ɹ�����true��ʧ�ܷ���nil
+        bool或者nil，成功返回true，失败返回nil
     </ol>
 
 
 
     <h3>Usage:</h3>
     <ul>
-        <li><pre class="example">nvm.set(<span class="string">"name"</span>,<span class="string">"Luat"</span>)������name��ֵΪLuat������д���ļ�ϵͳ</pre></li>
-        <li><pre class="example">nvm.set(<span class="string">"age"</span>,<span class="number">12</span>,<span class="string">"SVR"</span>)������age��ֵΪ<span class="number">12</span>������д���ļ�ϵͳ�������ֵ����<span class="number">12</span>�������һ��PARA_CHANGED_IND��Ϣ</pre></li>
-        <li><pre class="example">nvm.set(<span class="string">"class"</span>,<span class="string">"Class2"</span>,<span class="keyword">nil</span>,<span class="keyword">false</span>)������class��ֵΪClass2����д���ļ�ϵͳ</pre></li>
-        <li><pre class="example">nvm.set(<span class="string">"score"</span>,{chinese=<span class="number">100</span>,<span class="global">math</span>=<span class="number">99</span>,english=<span class="number">98</span>})������score��ֵΪ{chinese=<span class="number">100</span>,<span class="global">math</span>=<span class="number">99</span>,english=<span class="number">98</span>}������д���ļ�ϵͳ</pre></li>
+        <li><pre class="example">nvm.set(<span class="string">"name"</span>,<span class="string">"Luat"</span>)，参数name赋值为Luat，立即写入文件系统</pre></li>
+        <li><pre class="example">nvm.set(<span class="string">"age"</span>,<span class="number">12</span>,<span class="string">"SVR"</span>)，参数age赋值为<span class="number">12</span>，立即写入文件系统，如果旧值不是<span class="number">12</span>，会产生一个PARA_CHANGED_IND消息</pre></li>
+        <li><pre class="example">nvm.set(<span class="string">"class"</span>,<span class="string">"Class2"</span>,<span class="keyword">nil</span>,<span class="keyword">false</span>)，参数class赋值为Class2，不写入文件系统</pre></li>
+        <li><pre class="example">nvm.set(<span class="string">"score"</span>,{chinese=<span class="number">100</span>,<span class="global">math</span>=<span class="number">99</span>,english=<span class="number">98</span>})，参数score赋值为{chinese=<span class="number">100</span>,<span class="global">math</span>=<span class="number">99</span>,english=<span class="number">98</span>}，立即写入文件系统</pre></li>
     </ul>
 
 </dd>
@@ -193,42 +193,42 @@
     <strong>sett (k, kk, v, r, s)</strong>
     </dt>
     <dd>
-    ����ĳ��������ֵ
+    设置某个参数的值
 
 
     <h3>Parameters:</h3>
     <ul>
         <li><span class="parameter">k</span>
-         ��string���ͣ�����������
+         ，string类型，参数的名字
         </li>
         <li><span class="parameter">kk</span>
-        , string����,������ֵ
+        , string类型,参数的值
         </li>
         <li><span class="parameter">v</span>
-        ���������������ͣ���������ֵ
+        ，可以是任意类型，参数的新值
         </li>
         <li><span class="parameter">r</span>
-        ������ԭ��ֻ�д����˷�nil����Ч����������vֵ�;�ֵ��ȷ����˸ı䣬�Ż����һ��PARA<em>CHANGED</em>IND��Ϣ
+        ，设置原因，只有传入了非nil的有效参数，并且v值和旧值相比发生了改变，才会产生一个PARA<em>CHANGED</em>IND消息
         </li>
         <li><span class="parameter">s</span>
-        ���Ƿ�����д�뵽�ļ�ϵͳ�У�false��д�룬����Ķ�д��
+        ，是否立即写入到文件系统中，false不写入，其余的都写入
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-        bool����nil���ɹ�����true��ʧ�ܷ���nil
+        bool或者nil，成功返回true，失败返回nil
     </ol>
 
 
 
     <h3>Usage:</h3>
     <ul>
-        <li><pre class="example">nvm.set(<span class="string">"name"</span>,<span class="string">"Luat"</span>)������name��ֵΪLuat������д���ļ�ϵͳ</pre></li>
-        <li><pre class="example">nvm.set(<span class="string">"age"</span>,<span class="number">12</span>,<span class="string">"SVR"</span>)������age��ֵΪ<span class="number">12</span>������д���ļ�ϵͳ�������ֵ����<span class="number">12</span>�������һ��PARA_CHANGED_IND��Ϣ</pre></li>
-        <li><pre class="example">nvm.set(<span class="string">"class"</span>,<span class="string">"Class2"</span>,<span class="keyword">nil</span>,<span class="keyword">false</span>)������class��ֵΪClass2����д���ļ�ϵͳ</pre></li>
-        <li><pre class="example">nvm.set(<span class="string">"score"</span>,{chinese=<span class="number">100</span>,<span class="global">math</span>=<span class="number">99</span>,english=<span class="number">98</span>})������score��ֵΪ{chinese=<span class="number">100</span>,<span class="global">math</span>=<span class="number">99</span>,english=<span class="number">98</span>}������д���ļ�ϵͳ</pre></li>
+        <li><pre class="example">nvm.set(<span class="string">"name"</span>,<span class="string">"Luat"</span>)，参数name赋值为Luat，立即写入文件系统</pre></li>
+        <li><pre class="example">nvm.set(<span class="string">"age"</span>,<span class="number">12</span>,<span class="string">"SVR"</span>)，参数age赋值为<span class="number">12</span>，立即写入文件系统，如果旧值不是<span class="number">12</span>，会产生一个PARA_CHANGED_IND消息</pre></li>
+        <li><pre class="example">nvm.set(<span class="string">"class"</span>,<span class="string">"Class2"</span>,<span class="keyword">nil</span>,<span class="keyword">false</span>)，参数class赋值为Class2，不写入文件系统</pre></li>
+        <li><pre class="example">nvm.set(<span class="string">"score"</span>,{chinese=<span class="number">100</span>,<span class="global">math</span>=<span class="number">99</span>,english=<span class="number">98</span>})，参数score赋值为{chinese=<span class="number">100</span>,<span class="global">math</span>=<span class="number">99</span>,english=<span class="number">98</span>}，立即写入文件系统</pre></li>
     </ul>
 
 </dd>
@@ -239,7 +239,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
-<i style="float:right;">Last updated 2018-03-10 12:28:37 </i>
+<i style="float:right;">Last updated 2018-03-12 17:43:12 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

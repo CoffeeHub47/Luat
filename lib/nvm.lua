@@ -1,6 +1,6 @@
---- Ä£¿é¹¦ÄÜ£º²ÎÊı¹ÜÀí
+--- æ¨¡å—åŠŸèƒ½ ï¼šå‚æ•°ç®¡ç†
 -- @module nvm
--- @author ÖìÌì»ª
+-- @author æœ±å¤©å
 -- @license MIT
 -- @copyright openLuat
 -- @release 2017.11.9
@@ -11,14 +11,14 @@ module(...,package.seeall)
 
 package.path = "/?.lua;".."/?.luae;"..package.path
 
---Ä¬ÈÏ²ÎÊıÅäÖÃ´æ´¢ÔÚconfignameÎÄ¼şÖĞ
---ÊµÊ±²ÎÊıÅäÖÃ´æ´¢ÔÚparanameÎÄ¼şÖĞ
---para£ºÊµÊ±²ÎÊı±í
---config£ºÄ¬ÈÏ²ÎÊı±í
+--é»˜è®¤å‚æ•°é…ç½®å­˜å‚¨åœ¨confignameæ–‡ä»¶ä¸­
+--å®æ—¶å‚æ•°é…ç½®å­˜å‚¨åœ¨paranameæ–‡ä»¶ä¸­
+--paraï¼šå®æ—¶å‚æ•°è¡¨
+--configï¼šé»˜è®¤å‚æ•°è¡¨
 paraname = "/nvm_para.lua"
 local para,libdftconfig,configname,econfigname = {}
 
---- ²ÎÊı»Ö¸´³ö³§ÉèÖÃ
+--- å‚æ•°æ¢å¤å‡ºå‚è®¾ç½®
 -- @return nil
 -- @usage nvm.restore()
 function restore()
@@ -31,25 +31,25 @@ function restore()
 end
 
 --[[
-º¯ÊıÃû£ºserialize
-¹¦ÄÜ  £º¸ù¾İ²»Í¬µÄÊı¾İÀàĞÍ£¬°´ÕÕ²»Í¬µÄ¸ñÊ½£¬Ğ´¸ñÊ½»¯ºóµÄÊı¾İµ½ÎÄ¼şÖĞ
-²ÎÊı  £º
-		pout£ºÎÄ¼ş¾ä±ú
-		o£ºÊı¾İ
-·µ»ØÖµ£ºÎŞ
+å‡½æ•°åï¼šserialize
+åŠŸèƒ½  ï¼šæ ¹æ®ä¸åŒçš„æ•°æ®ç±»å‹ï¼ŒæŒ‰ç…§ä¸åŒçš„æ ¼å¼ï¼Œå†™æ ¼å¼åŒ–åçš„æ•°æ®åˆ°æ–‡ä»¶ä¸­
+å‚æ•°  ï¼š
+		poutï¼šæ–‡ä»¶å¥æŸ„
+		oï¼šæ•°æ®
+è¿”å›å€¼ï¼šæ— 
 ]]
 local function serialize(pout,o)
 	if type(o) == "number" then
-		--numberÀàĞÍ£¬Ö±½ÓĞ´Ô­Ê¼Êı¾İ
+		--numberç±»å‹ï¼Œç›´æ¥å†™åŸå§‹æ•°æ®
 		pout:write(o)	
 	elseif type(o) == "string" then
-		--stringÀàĞÍ£¬Ô­Ê¼Êı¾İ×óÓÒ¸÷¼ÓÉÏË«ÒıºÅĞ´Èë
+		--stringç±»å‹ï¼ŒåŸå§‹æ•°æ®å·¦å³å„åŠ ä¸ŠåŒå¼•å·å†™å…¥
 		pout:write(string.format("%q", o))
 	elseif type(o) == "boolean" then
-		--booleanÀàĞÍ£¬×ª»¯ÎªstringĞ´Èë
+		--booleanç±»å‹ï¼Œè½¬åŒ–ä¸ºstringå†™å…¥
 		pout:write(tostring(o))
 	elseif type(o) == "table" then
-		--tableÀàĞÍ£¬¼Ó»»ĞĞ£¬´óÀ¨ºÅ£¬ÖĞÀ¨ºÅ£¬Ë«ÒıºÅĞ´Èë
+		--tableç±»å‹ï¼ŒåŠ æ¢è¡Œï¼Œå¤§æ‹¬å·ï¼Œä¸­æ‹¬å·ï¼ŒåŒå¼•å·å†™å…¥
 		pout:write("{\n")
 		for k,v in pairs(o) do
 			if type(k) == "number" then
@@ -69,11 +69,11 @@ local function serialize(pout,o)
 end
 
 --[[
-º¯ÊıÃû£ºupd
-¹¦ÄÜ  £º¸üĞÂÊµÊ±²ÎÊı±í
-²ÎÊı  £º
-		overide£ºÊÇ·ñÓÃÄ¬ÈÏ²ÎÊıÇ¿ÖÆ¸üĞÂÊµÊ±²ÎÊı
-·µ»ØÖµ£ºÎŞ
+å‡½æ•°åï¼šupd
+åŠŸèƒ½  ï¼šæ›´æ–°å®æ—¶å‚æ•°è¡¨
+å‚æ•°  ï¼š
+		overideï¼šæ˜¯å¦ç”¨é»˜è®¤å‚æ•°å¼ºåˆ¶æ›´æ–°å®æ—¶å‚æ•°
+è¿”å›å€¼ï¼šæ— 
 ]]
 function upd(overide)
 	for k,v in pairs(libdftconfig) do
@@ -86,10 +86,10 @@ function upd(overide)
 end
 
 --[[
-º¯ÊıÃû£ºload
-¹¦ÄÜ  £º³õÊ¼»¯²ÎÊı
-²ÎÊı  £ºÎŞ
-·µ»ØÖµ£ºÎŞ
+å‡½æ•°åï¼šload
+åŠŸèƒ½  ï¼šåˆå§‹åŒ–å‚æ•°
+å‚æ•°  ï¼šæ— 
+è¿”å›å€¼ï¼šæ— 
 ]]
 local function load()
 	local f = io.open(paraname,"rb")
@@ -110,11 +110,11 @@ local function load()
 end
 
 --[[
-º¯ÊıÃû£ºsave
-¹¦ÄÜ  £º±£´æ²ÎÊıÎÄ¼ş
-²ÎÊı  £º
-		s£ºÊÇ·ñÕæÕı±£´æ£¬true±£´æ£¬false»òÕßnil²»±£´æ
-·µ»ØÖµ£ºÎŞ
+å‡½æ•°åï¼šsave
+åŠŸèƒ½  ï¼šä¿å­˜å‚æ•°æ–‡ä»¶
+å‚æ•°  ï¼š
+		sï¼šæ˜¯å¦çœŸæ­£ä¿å­˜ï¼Œtrueä¿å­˜ï¼Œfalseæˆ–è€…nilä¸ä¿å­˜
+è¿”å›å€¼ï¼šæ— 
 ]]
 local function save(s)
 	if not s then return end
@@ -136,16 +136,16 @@ local function save(s)
 	fpara:close()
 end
 
---- ÉèÖÃÄ³¸ö²ÎÊıµÄÖµ
--- @param k £¬stringÀàĞÍ£¬²ÎÊıµÄÃû×Ö
--- @param v£¬¿ÉÒÔÊÇÈÎÒâÀàĞÍ£¬²ÎÊıµÄĞÂÖµ
--- @param r£¬ÉèÖÃÔ­Òò£¬Ö»ÓĞ´«ÈëÁË·ÇnilµÄÓĞĞ§²ÎÊı£¬²¢ÇÒvÖµºÍ¾ÉÖµÏà±È·¢ÉúÁË¸Ä±ä£¬²Å»á²úÉúÒ»¸öPARA_CHANGED_INDÏûÏ¢
--- @param s£¬ÊÇ·ñÁ¢¼´Ğ´Èëµ½ÎÄ¼şÏµÍ³ÖĞ£¬false²»Ğ´Èë£¬ÆäÓàµÄ¶¼Ğ´Èë
--- @return bool»òÕßnil£¬³É¹¦·µ»Øtrue£¬Ê§°Ü·µ»Ønil
--- @usage nvm.set("name","Luat")£¬²ÎÊıname¸³ÖµÎªLuat£¬Á¢¼´Ğ´ÈëÎÄ¼şÏµÍ³
--- @usage nvm.set("age",12,"SVR")£¬²ÎÊıage¸³ÖµÎª12£¬Á¢¼´Ğ´ÈëÎÄ¼şÏµÍ³£¬Èç¹û¾ÉÖµ²»ÊÇ12£¬»á²úÉúÒ»¸öPARA_CHANGED_INDÏûÏ¢
--- @usage nvm.set("class","Class2",nil,false)£¬²ÎÊıclass¸³ÖµÎªClass2£¬²»Ğ´ÈëÎÄ¼şÏµÍ³
--- @usage nvm.set("score",{chinese=100,math=99,english=98})£¬²ÎÊıscore¸³ÖµÎª{chinese=100,math=99,english=98}£¬Á¢¼´Ğ´ÈëÎÄ¼şÏµÍ³
+--- è®¾ç½®æŸä¸ªå‚æ•°çš„å€¼
+-- @param k ï¼Œstringç±»å‹ï¼Œå‚æ•°çš„åå­—
+-- @param vï¼Œå¯ä»¥æ˜¯ä»»æ„ç±»å‹ï¼Œå‚æ•°çš„æ–°å€¼
+-- @param rï¼Œè®¾ç½®åŸå› ï¼Œåªæœ‰ä¼ å…¥äº†énilçš„æœ‰æ•ˆå‚æ•°ï¼Œå¹¶ä¸”vå€¼å’Œæ—§å€¼ç›¸æ¯”å‘ç”Ÿäº†æ”¹å˜ï¼Œæ‰ä¼šäº§ç”Ÿä¸€ä¸ªPARA_CHANGED_INDæ¶ˆæ¯
+-- @param sï¼Œæ˜¯å¦ç«‹å³å†™å…¥åˆ°æ–‡ä»¶ç³»ç»Ÿä¸­ï¼Œfalseä¸å†™å…¥ï¼Œå…¶ä½™çš„éƒ½å†™å…¥
+-- @return boolæˆ–è€…nilï¼ŒæˆåŠŸè¿”å›trueï¼Œå¤±è´¥è¿”å›nil
+-- @usage nvm.set("name","Luat")ï¼Œå‚æ•°nameèµ‹å€¼ä¸ºLuatï¼Œç«‹å³å†™å…¥æ–‡ä»¶ç³»ç»Ÿ
+-- @usage nvm.set("age",12,"SVR")ï¼Œå‚æ•°ageèµ‹å€¼ä¸º12ï¼Œç«‹å³å†™å…¥æ–‡ä»¶ç³»ç»Ÿï¼Œå¦‚æœæ—§å€¼ä¸æ˜¯12ï¼Œä¼šäº§ç”Ÿä¸€ä¸ªPARA_CHANGED_INDæ¶ˆæ¯
+-- @usage nvm.set("class","Class2",nil,false)ï¼Œå‚æ•°classèµ‹å€¼ä¸ºClass2ï¼Œä¸å†™å…¥æ–‡ä»¶ç³»ç»Ÿ
+-- @usage nvm.set("score",{chinese=100,math=99,english=98})ï¼Œå‚æ•°scoreèµ‹å€¼ä¸º{chinese=100,math=99,english=98}ï¼Œç«‹å³å†™å…¥æ–‡ä»¶ç³»ç»Ÿ
 function set(k,v,r,s)
 	local bchg = true
 	if type(v) ~= "table" then
@@ -160,17 +160,17 @@ function set(k,v,r,s)
 	return true
 end
 
---- ÉèÖÃÄ³¸ö²ÎÊıµÄÖµ
--- @param k £¬stringÀàĞÍ£¬²ÎÊıµÄÃû×Ö
--- @param kk, stringÀàĞÍ,²ÎÊıµÄÖµ
--- @param v£¬¿ÉÒÔÊÇÈÎÒâÀàĞÍ£¬²ÎÊıµÄĞÂÖµ
--- @param r£¬ÉèÖÃÔ­Òò£¬Ö»ÓĞ´«ÈëÁË·ÇnilµÄÓĞĞ§²ÎÊı£¬²¢ÇÒvÖµºÍ¾ÉÖµÏà±È·¢ÉúÁË¸Ä±ä£¬²Å»á²úÉúÒ»¸öPARA_CHANGED_INDÏûÏ¢
--- @param s£¬ÊÇ·ñÁ¢¼´Ğ´Èëµ½ÎÄ¼şÏµÍ³ÖĞ£¬false²»Ğ´Èë£¬ÆäÓàµÄ¶¼Ğ´Èë
--- @return bool»òÕßnil£¬³É¹¦·µ»Øtrue£¬Ê§°Ü·µ»Ønil
--- @usage nvm.set("name","Luat")£¬²ÎÊıname¸³ÖµÎªLuat£¬Á¢¼´Ğ´ÈëÎÄ¼şÏµÍ³
--- @usage nvm.set("age",12,"SVR")£¬²ÎÊıage¸³ÖµÎª12£¬Á¢¼´Ğ´ÈëÎÄ¼şÏµÍ³£¬Èç¹û¾ÉÖµ²»ÊÇ12£¬»á²úÉúÒ»¸öPARA_CHANGED_INDÏûÏ¢
--- @usage nvm.set("class","Class2",nil,false)£¬²ÎÊıclass¸³ÖµÎªClass2£¬²»Ğ´ÈëÎÄ¼şÏµÍ³
--- @usage nvm.set("score",{chinese=100,math=99,english=98})£¬²ÎÊıscore¸³ÖµÎª{chinese=100,math=99,english=98}£¬Á¢¼´Ğ´ÈëÎÄ¼şÏµÍ³
+--- è®¾ç½®æŸä¸ªå‚æ•°çš„å€¼
+-- @param k ï¼Œstringç±»å‹ï¼Œå‚æ•°çš„åå­—
+-- @param kk, stringç±»å‹,å‚æ•°çš„å€¼
+-- @param vï¼Œå¯ä»¥æ˜¯ä»»æ„ç±»å‹ï¼Œå‚æ•°çš„æ–°å€¼
+-- @param rï¼Œè®¾ç½®åŸå› ï¼Œåªæœ‰ä¼ å…¥äº†énilçš„æœ‰æ•ˆå‚æ•°ï¼Œå¹¶ä¸”vå€¼å’Œæ—§å€¼ç›¸æ¯”å‘ç”Ÿäº†æ”¹å˜ï¼Œæ‰ä¼šäº§ç”Ÿä¸€ä¸ªPARA_CHANGED_INDæ¶ˆæ¯
+-- @param sï¼Œæ˜¯å¦ç«‹å³å†™å…¥åˆ°æ–‡ä»¶ç³»ç»Ÿä¸­ï¼Œfalseä¸å†™å…¥ï¼Œå…¶ä½™çš„éƒ½å†™å…¥
+-- @return boolæˆ–è€…nilï¼ŒæˆåŠŸè¿”å›trueï¼Œå¤±è´¥è¿”å›nil
+-- @usage nvm.set("name","Luat")ï¼Œå‚æ•°nameèµ‹å€¼ä¸ºLuatï¼Œç«‹å³å†™å…¥æ–‡ä»¶ç³»ç»Ÿ
+-- @usage nvm.set("age",12,"SVR")ï¼Œå‚æ•°ageèµ‹å€¼ä¸º12ï¼Œç«‹å³å†™å…¥æ–‡ä»¶ç³»ç»Ÿï¼Œå¦‚æœæ—§å€¼ä¸æ˜¯12ï¼Œä¼šäº§ç”Ÿä¸€ä¸ªPARA_CHANGED_INDæ¶ˆæ¯
+-- @usage nvm.set("class","Class2",nil,false)ï¼Œå‚æ•°classèµ‹å€¼ä¸ºClass2ï¼Œä¸å†™å…¥æ–‡ä»¶ç³»ç»Ÿ
+-- @usage nvm.set("score",{chinese=100,math=99,english=98})ï¼Œå‚æ•°scoreèµ‹å€¼ä¸º{chinese=100,math=99,english=98}ï¼Œç«‹å³å†™å…¥æ–‡ä»¶ç³»ç»Ÿ
 function sett(k,kk,v,r,s)
 	para[k][kk] = v
 	save(s or s==nil)
@@ -179,21 +179,21 @@ function sett(k,kk,v,r,s)
 end
 
 --[[
-º¯ÊıÃû£ºflush
-¹¦ÄÜ  £º°Ñ²ÎÊı´ÓÄÚ´æĞ´µ½ÎÄ¼şÖĞ
-²ÎÊı  £ºÎŞ
-·µ»ØÖµ£ºÎŞ
+å‡½æ•°åï¼šflush
+åŠŸèƒ½  ï¼šæŠŠå‚æ•°ä»å†…å­˜å†™åˆ°æ–‡ä»¶ä¸­
+å‚æ•°  ï¼šæ— 
+è¿”å›å€¼ï¼šæ— 
 ]]
 function flush()
 	save(true)
 end
 
 --[[
-º¯ÊıÃû£ºget
-¹¦ÄÜ  £º¶ÁÈ¡²ÎÊıÖµ
-²ÎÊı  £º
-		k£º²ÎÊıÃû
-·µ»ØÖµ£º²ÎÊıÖµ
+å‡½æ•°åï¼šget
+åŠŸèƒ½  ï¼šè¯»å–å‚æ•°å€¼
+å‚æ•°  ï¼š
+		kï¼šå‚æ•°å
+è¿”å›å€¼ï¼šå‚æ•°å€¼
 ]]
 function get(k)
 	if type(para[k]) == "table" then
@@ -208,28 +208,28 @@ function get(k)
 end
 
 --[[
-º¯ÊıÃû£ºgett
-¹¦ÄÜ  £º¶ÁÈ¡tableÀàĞÍµÄ²ÎÊıÖĞµÄÄ³Ò»ÏîµÄÖµ
-²ÎÊı  £º
-		k£ºtable²ÎÊıÃû
-		kk£ºtable²ÎÊıÖĞµÄ¼üÖµ
-·µ»ØÖµ£º²ÎÊıÖµ
+å‡½æ•°åï¼šgett
+åŠŸèƒ½  ï¼šè¯»å–tableç±»å‹çš„å‚æ•°ä¸­çš„æŸä¸€é¡¹çš„å€¼
+å‚æ•°  ï¼š
+		kï¼štableå‚æ•°å
+		kkï¼štableå‚æ•°ä¸­çš„é”®å€¼
+è¿”å›å€¼ï¼šå‚æ•°å€¼
 ]]
 function gett(k,kk)
 	return para[k][kk]
 end
 
 --[[
-º¯ÊıÃû£ºinit
-¹¦ÄÜ  £º³õÊ¼»¯²ÎÊı´æ´¢Ä£¿é
-²ÎÊı  £º
-		dftcfgfile£ºÄ¬ÈÏÅäÖÃÎÄ¼ş
-·µ»ØÖµ£ºÎŞ
+å‡½æ•°åï¼šinit
+åŠŸèƒ½  ï¼šåˆå§‹åŒ–å‚æ•°å­˜å‚¨æ¨¡å—
+å‚æ•°  ï¼š
+		dftcfgfileï¼šé»˜è®¤é…ç½®æ–‡ä»¶
+è¿”å›å€¼ï¼šæ— 
 ]]
 function init(dftcfgfile)
 	local f
 	f,libdftconfig = pcall(require,string.match(dftcfgfile,"(.+)%.lua"))
 	configname,econfigname = "/lua/"..dftcfgfile,"/lua/"..dftcfgfile.."e"
-	--³õÊ¼»¯ÅäÖÃÎÄ¼ş£¬´ÓÎÄ¼şÖĞ°Ñ²ÎÊı¶ÁÈ¡µ½ÄÚ´æÖĞ
+	--åˆå§‹åŒ–é…ç½®æ–‡ä»¶ï¼Œä»æ–‡ä»¶ä¸­æŠŠå‚æ•°è¯»å–åˆ°å†…å­˜ä¸­
 	load()
 end

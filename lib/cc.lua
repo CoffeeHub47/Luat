@@ -1,4 +1,4 @@
---- 通话管理
+--- 模块功能 : 通话管理
 -- @module cc
 -- @author 小强
 -- @license MIT
@@ -6,7 +6,6 @@
 -- @release 2017.11.2
 
 module(..., package.seeall)
-
 -- 通话状态
 CONNECTED = 0
 HOLD = 1
@@ -25,14 +24,14 @@ local ccready = false
 --通话列表
 local call_list = {n= 0}
 
---- cc.anycallexist 是否存在通话
+--- 是否存在通话
 -- @return result 存在通话返回true，否则返回false
 -- @usage result = cc.anycallexist()
 function anycallexist()
     return call_list.n ~= 0
 end
 
---- cc.getState 查询某个号码的通话状态
+--- 查询某个号码的通话状态
 -- @param num 查询号码
 -- @return state 通话状态，状态值参考本模块定义
 -- @usage state = cc.getState('10086')
@@ -40,7 +39,7 @@ function getState(num)
     return call_list[num] or DISCONNECTED
 end
 
---- cc.dial 拨号
+--- 拨号
 -- @param number 号码
 -- @param delay 延时delay毫秒后，才发送at命令呼叫，默认不延时
 -- @return result true表示允许发送at命令拨号并且发送at，false表示不允许at命令拨号
@@ -53,7 +52,7 @@ function dial(number, delay)
     return true
 end
 
---- cc.hangup 挂断所有通话
+--- 挂断所有通话
 -- @param num 号码，若指定号码通话状态不对 则直接退出 不会执行挂断，若挂断时会挂断所有电话
 -- @return
 -- @usage cc.hangup('10086')
@@ -64,7 +63,7 @@ function hangup(num)
     call_list[num] = DISCONNECTING
 end
 
---- cc.accept 接听电话
+--- 接听电话
 -- @param num 号码，若指定号码通话状态不对 则直接退出 不会接通
 -- @return
 -- @usage cc.accept('10086')
@@ -75,7 +74,7 @@ function accept(num)
     call_list[num] = CONNECTING
 end
 
---- cc.transvoice 通话中发送声音到对端,必须是12.2K AMR格式
+--- 通话中发送声音到对端,必须是12.2K AMR格式
 -- @param data
 -- @param loop
 -- @param loop2
@@ -107,7 +106,7 @@ function transvoice(data, loop, loop2)
     return true
 end
 
---- cc.dtmfdetect 设置dtmf检测是否使能以及灵敏度
+--- 设置dtmf检测是否使能以及灵敏度
 -- @param enable true使能，false或者nil为不使能
 -- @param sens 灵敏度，默认3，最灵敏为1
 -- @return
@@ -124,7 +123,7 @@ function dtmfdetect(enable, sens)
     req("AT+DTMFDET=" .. (enable and 1 or 0))
 end
 
---- cc.senddtmf 发送dtmf到对端
+--- 发送dtmf到对端
 -- @param str dtmf字符串
 -- @param playtime 每个dtmf播放时间，单位毫秒，默认100
 -- @param intvl 两个dtmf间隔，单位毫秒，默认100
