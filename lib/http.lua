@@ -4,18 +4,18 @@
 -- @license MIT
 -- @copyright OpenLuat.com
 -- @release 2017.10.23
-require "socket"
-require "utils"
+require 'socket'
+require 'utils'
 module(..., package.seeall)
 
-local Content_type = {"application/x-www-form-urlencoded", "application/json", "application/octet-stream", }
+local Content_type = {'application/x-www-form-urlencoded', 'application/json', 'application/octet-stream'}
 
 -- 处理表的url编码
 function urlencodeTab(params)
     local msg = {}
     for k, v in pairs(params) do
-        table.insert(msg, string.urlencode(k) .. "=" .. string.urlencode(v))
-        table.insert(msg, "&")
+        table.insert(msg, string.urlencode(k) .. '=' .. string.urlencode(v))
+        table.insert(msg, '&')
     end
     table.remove(msg)
     return table.concat(msg)
@@ -35,71 +35,137 @@ end
 -- @usage local r, e  = http.request("http://wrong.url/ ")
 function request(method, url, timeout, params, data, ctype, basic, headers)
     local response_header, response_code, response_message, response_body, host, port, path, str, sub, len = {}
-    local headers = headers or {
-        ["User-Agent"] = "Mozilla/4.0",
-        ["Accept"] = "*/*",
-        ["Accept-Language"] = "zh-CN,zh,cn",
-        ["Content-Type"] = "application/x-www-form-urlencoded",
-        ["Content-Length"] = "0",
-        ["Connection"] = "close",
-    }
+    local headers =
+        headers or
+        {
+            ['User-Agent'] = 'Mozilla/4.0',
+            ['Accept'] = '*/*',
+            ['Accept-Language'] = 'zh-CN,zh,cn',
+            ['Content-Type'] = 'application/x-www-form-urlencoded',
+            ['Content-Length'] = '0',
+            ['Connection'] = 'close'
+        }
     -- 判断SSL支持是否满足
-    local ssl, https = string.find(rtos.get_version(), "SSL"), url:find("https://")
-    if ssl == nil and https then return "401", "SOCKET_SSL_ERROR" end
+    local ssl, https = string.find(rtos.get_version(), 'SSL'), url:find('https://')
+    if ssl == nil and https then
+        return '401', 'SOCKET_SSL_ERROR'
+    end
     -- 对host:port整形
-    if url:find("://") then url = url:sub(8) end
-    sub = url:find("/")
-    if not sub then url = url .. "/"; sub = -1 end
-    str = url:match("([%w%.%-%:]+)/")
-    port = str:match(":(%d+)") or 80
-    host = str:match("[%w%.%-]+")
+    if url:find('://') then
+        url = url:sub(8)
+    end
+    sub = url:find('/')
+    if not sub then
+        url = url .. '/'
+        sub = -1
+    end
+    str = url:match('([%w%.%-%:]+)/')
+    port = str:match(':(%d+)') or 80
+    host = str:match('[%w%.%-]+')
     path = url:sub(sub)
-    sub = ""
+    sub = ''
     -- 处理查询字符串
-    if params ~= nil and type(params) == "table" then path = path .. "?" .. urlencodeTab(params) end
+    if params ~= nil and type(params) == 'table' then
+        path = path .. '?' .. urlencodeTab(params)
+    end
     -- 处理HTTP协议body部分的数据
-    if data ~= nil and type(data) == "table" or type(data) == "string" then
-        ctype = ctype or 2
-        headers["Content-Type"] = Content_type[ctype]
-        if ctype == 1 then sub = urlencodeTab(data) end
-        if ctype == 2 then sub = json.encode(data) end
-        if ctype == 3 then sub = table.concat(data) end
+    ctype = ctype or 2
+    headers['Content-Type'] = Content_type[ctype]
+    if ctype == 1 and data ~= nil then
+        if type(data) == 'table' then
+            data = table.concat(data)
+        end
+        sub = urlencodeTab(data)
         len = string.len(sub)
-        headers["Content-Length"] = len or 0
+        headers['Content-Length'] = len or 0
+    elseif ctype == 2 and data ~= nil then
+        if type(data) == 'table' then
+            sub = json.encode(data)
+        elseif type(data) == 'string' then
+            sub = data
+        end
+        len = string.len(sub)
+        headers['Content-Length'] = len or 0
+    elseif ctype == 3 and type(data) == 'string' then
+        len = io.filesize(data)
+        headers['Content-Length'] = len or 0
     end
     -- 处理HTTP Basic Authorization 验证
-    if basic ~= nil and type(basic) == "string" then
-        headers["Authorization"] = "Basic " .. crypto.base64_encode(basic, #basic)
+    if basic ~= nil and type(basic) == 'string' then
+        headers['Authorization'] = 'Basic ' .. crypto.base64_encode(basic, #basic)
     end
     -- 处理headers部分
     local msg = {}
     for k, v in pairs(headers) do
-        table.insert(msg, k .. ": " .. v)
+        table.insert(msg, k .. ': ' .. v)
     end
     -- 合并request报文
-    str = str .. "\r\n" .. table.concat(msg, "\r\n") .. "\r\n\r\n"
-    str = method .. " " .. path .. " HTTP/1.0\r\nHost: " .. str .. sub .. "\r\n"
+    str = str .. '\r\n' .. table.concat(msg, '\r\n') .. '\r\n\r\n'
     -- log.info("http.request send:", str:tohex())
     -- 发送请求报文
     local c = socket.tcp()
-    if not c:connect(host, port) then c:close() return "502", "SOCKET_CONN_ERROR" end
-    if not c:send(str) then c:close() return "426", "SOCKET_SEND_ERROR" end
+    if not c:connect(host, port) then
+        c:close()
+        return '502', 'SOCKET_CONN_ERROR'
+    end
+    if ctype ~= 3 then
+        str = method .. ' ' .. path .. ' HTTP/1.0\r\nHost: ' .. str .. sub .. '\r\n'
+        if not c:send(str) then
+            c:close()
+            return '426', 'SOCKET_SEND_ERROR'
+        end
+    else
+        str = method .. ' ' .. path .. ' HTTP/1.0\r\nHost: ' .. str
+        if not c:send(str) then
+            c:close()
+            return '426', 'SOCKET_SEND_ERROR'
+        end
+        local file = io.open(data, 'r')
+        if file then
+            while true do
+                local dat = file:read(1024)
+                if dat == nil then
+                    io.close(file)
+                    break
+                end
+                log.info('http.request dat:', dat:tohex())
+                if not c:send(dat) then
+                    io.close(file)
+                    c:close()
+                    return '426', 'SOCKET_SEND_ERROR'
+                end
+            end
+        end
+        if not c:send('\r\n') then
+            c:close()
+            return '426', 'SOCKET_SEND_ERROR'
+        end
+    end
+
     msg = {}
     r, s = c:recv(timeout)
-    if not r then return "503", "SOCKET_RECV_TIMOUT" end
-    response_code = s:match(" (%d+) ")
-    response_message = s:match(" (%a+)")
-    log.info("http.response code and message:\t", response_code, response_message)
-    for k, v in s:gmatch("([%a%-]+): (%C+)") do response_header[k] = v end
-    gzip = s:match("%aontent%-%ancoding: (%a+)")
+    if not r then
+        return '503', 'SOCKET_RECV_TIMOUT'
+    end
+    response_code = s:match(' (%d+) ')
+    response_message = s:match(' (%a+)')
+    log.info('http.response code and message:\t', response_code, response_message)
+    for k, v in s:gmatch('([%a%-]+): (%C+)') do
+        response_header[k] = v
+    end
+    gzip = s:match('%aontent%-%ancoding: (%a+)')
     while true do
         table.insert(msg, s)
         r, s = c:recv(timeout)
-        if not r then break end
+        if not r then
+            break
+        end
     end
     c:close()
     str = table.concat(msg)
-    sub, len = str:find("\r?\n\r?\n")
-    if gzip then return response_code, response_header, ((zlib.inflate(table.concat(msg))):read()) end
+    sub, len = str:find('\r?\n\r?\n')
+    if gzip then
+        return response_code, response_header, ((zlib.inflate(table.concat(msg))):read())
+    end
     return response_code, response_header, str:sub(len + 1, -1)
 end
