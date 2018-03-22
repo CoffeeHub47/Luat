@@ -66,7 +66,7 @@ function cellTrack(timeout)
     -- 发送请求报文
     local code, head, data = http.request("POST", LBS_URL, timeout, nil, ct, 2, LBS_KEY .. ":" .. LBS_SECRET)
     if code == "200" then
-        data = json.decode(data)
+        -- data = json.decode(data)
         log.info("agps.lbs length,file:", io.writefile(LBS_FILE, data))
         return data
     end
