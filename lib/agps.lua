@@ -23,7 +23,7 @@ local LBS_SECRET = "BKW3tSMv0YBqomUlqen3DjyIbg0hvuj6P3EHFeRKCBmVkVjDYy7NQcIcWw1r
 function LBS_Setup(host, key, secret)
     LBS_HOST = host or LBS_HOST
     LBS_KEY = key or LBS_KEY
-    LBS_KEY = secret or LBS_SECRET
+    LBS_SECRET = secret or LBS_SECRET
 end
 --- 下载星历数据
 -- @number timeout,下载星历超时等待时间
@@ -63,6 +63,7 @@ function cellTrack(timeout)
         tmp.csq = (tonumber(rssi) > 31) and 31 or tonumber(rssi)
         table.insert(ct.cell, tmp)
     end
+    ct.lng_lat_format = "string"
     -- 发送请求报文
     local code, head, data = http.request("POST", LBS_URL, timeout, nil, ct, 2, LBS_KEY .. ":" .. LBS_SECRET)
     if code == "200" then
