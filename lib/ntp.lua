@@ -1,9 +1,10 @@
---- 模块功能：网络授时
+--- 模块功能 : 网络授时
 -- @module ntp
 -- @author 稀饭放姜
 -- @license MIT
 -- @copyright openLuat
 -- @release 2017.10.21
+
 require "misc"
 require "socket"
 require "utils"
@@ -38,7 +39,8 @@ function getServers()
 end
 
 --- 设置NTP服务器地址列表
--- @param table,服务器地址列表
+-- @param st,tab类型，服务器地址列表
+-- @return 无
 -- @usage ntp.getServers({"1edu.ntp.org.cn","cn.ntp.org.cn"})
 function setServers(st)
     timeServer =  st
@@ -73,7 +75,7 @@ function ntpTime(ts,fnc)
                         ntim = os.date("*t", (sbyte(ssub(data, 41, 41)) - 0x83) * 2 ^ 24 + (sbyte(ssub(data, 42, 42)) - 0xAA) * 2 ^ 16 + (sbyte(ssub(data, 43, 43)) - 0x7E) * 2 ^ 8 + (sbyte(ssub(data, 44, 44)) - 0x80) + 1)
                         misc.setClock(ntim)
                         ntpend = true 
-                        if fnc ~= nil and type(fnc) == "function" then fnc() end
+                        if fnc ~= nil and type(fnc) == "function" then fnc(ntim) end
                         c:close() 
                         break
                     end

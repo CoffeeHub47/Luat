@@ -1,4 +1,4 @@
---- 模块功能：查询sim卡状态、iccid、imsi、mcc、mnc
+--- 模块功能 ：查询sim卡状态、iccid、imsi、mcc、mnc
 -- @module sim
 -- @author 小强、稀饭放姜
 -- @license MIT

@@ -1,8 +1,8 @@
 --必须在这个位置定义PROJECT和VERSION变量
 --PROJECT：ascii string类型，可以随便定义，只要不使用,就行
 --VERSION：ascii string类型，如果使用Luat物联云平台固件升级的功能，必须按照"X.X.X"定义，X表示1位数字；否则可随便定义
-PROJECT = "DEMO_TASK"
-VERSION = "2.0.0"
+PROJECT = "Luat_TASK"
+VERSION = "2.0.2"
 -- 日志级别
 require "log"
 LOG_LEVEL = log.LOGLEVEL_TRACE
@@ -35,6 +35,7 @@ require "ntp"
 ntp.timeSync(1,function()log.info("----------------> AutoTimeSync is Done ! <----------------")end)
 require "http"
 require "audio"
+-- require "i2cTest"
 -- 测试LCD任务
 -- require "ui"
 -- ui.init(pio.P0_8, pio.P0_10, pio.P0_11, pio.P0_12)
