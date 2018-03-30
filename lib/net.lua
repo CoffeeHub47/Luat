@@ -11,7 +11,9 @@ local ril = require "ril"
 local pio = require "pio"
 local sim = require "sim"
 local log = require "log"
-module("net")
+require "utils"
+require "sys"
+module(..., package.seeall)
 
 --加载常用的全局函数至本地
 local publish = sys.publish
@@ -227,25 +229,45 @@ local function neturc(data, prefix)
     end
 end
 
+local function readfly()
+    local fly = io.readfile("/flymod.ini")
+    if fly == "false" then
+        flyMode = false
+    elseif
+        fly == "true" then
+        flyMode = true
+    elseif fly == nil then
+        fly = "null"
+        io.writefile("/flymod.ini", "false")
+    end
+    log.info("fly ----------------", fly)
+end
+readfly()
 --- 飞行模式开关
 -- @bool mode，true:飞行模式开，false:飞行模式关
 -- @return 无
 -- @usage net.switchFly(mode)
 function switchFly(mode)
-    if flyMode == mode then return end
+    if type(mode) ~= "boolean" then return "Parameters are not Boolean types." end
+    if flyMode == mode then return "The flight model didn't change." end
     flyMode = mode
     -- 处理飞行模式
     if mode then
+        io.writefile("/flymod.ini", "true")
         ril.request("AT+CFUN=4")
     -- 处理退出飞行模式
     else
+        io.writefile("/flymod.ini", "false")
         ril.request("AT+CFUN=1")
+        ril.request("AT+CFUN=1,1")
         --处理查询定时器
         csqQueryPoll()
         cengQueryPoll()
         --复位GSM网络状态
         neturc("2", "+CREG")
+    -- sys.restart("Flight mode change!")
     end
+    ril.request("AT+CFUN?")
 end
 
 --- 获取GSM网络注册状态
