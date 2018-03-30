@@ -11,7 +11,8 @@ local ril = require "ril"
 local pio = require "pio"
 local sim = require "sim"
 local log = require "log"
-module("net")
+require "utils"
+module(..., package.seeall)
 
 --加载常用的全局函数至本地
 local publish = sys.publish
@@ -227,13 +228,16 @@ local function neturc(data, prefix)
     end
 end
 
+local fly = io.readfile("/flymod.ini")
+if fly == "false" then switchFly = false elseif fly == "false" then switchFly = true end
 --- 飞行模式开关
 -- @bool mode，true:飞行模式开，false:飞行模式关
 -- @return 无
 -- @usage net.switchFly(mode)
 function switchFly(mode)
-    if flyMode == mode then return end
+    assert(type(mode) == "boolean", "Parameters are not Boolean types.")
     flyMode = mode
+    if mode then io.writefile("/flymod.ini", "true") else io.writefile("/flymod.ini", "false") end
     -- 处理飞行模式
     if mode then
         ril.request("AT+CFUN=4")
