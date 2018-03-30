@@ -243,7 +243,7 @@ function switchFly(mode)
         ril.request("AT+CFUN=4")
     -- 处理退出飞行模式
     else
-        ril.request("AT+CFUN=1")
+        ril.request("AT+CFUN=1,1")
         --处理查询定时器
         csqQueryPoll()
         cengQueryPoll()
