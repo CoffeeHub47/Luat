@@ -143,8 +143,9 @@ function request(method, url, timeout, params, data, ctype, basic, headers)
     end
 
     msg = {}
-    r, s = c:recv(timeout)
+    local r, s = c:recv(timeout)
     if not r then
+        c:close()
         return '503', 'SOCKET_RECV_TIMOUT'
     end
     response_code = s:match(' (%d+) ')

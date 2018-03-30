@@ -57,17 +57,18 @@ end
 -- 创建socket函数
 local mt = {__index = {}}
 local function socket(protocol)
-    local id = table.remove(valid)
-    if not id then
-        log.warn("socket.socket: too many sockets")
-        return nil
-    end
-    
     local co = coroutine.running()
     if not co then
         log.warn("socket.socket: socket must be called in coroutine")
         return nil
     end
+
+    local id = table.remove(valid)
+    if not id then
+        log.warn("socket.socket: too many sockets")
+        return nil
+    end
+
     -- 实例的属性参数表
     local o = {
         id = id,
